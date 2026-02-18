@@ -1,0 +1,49 @@
+## --- [ ОСНОВНОЕ ДЛЯ .NET ] ---
+# Папки с результатами сборки
+[Bb]in/
+[Oo]bj/
+[Log]s/
+
+# Результаты публикации (Publish)
+publish/
+
+# Файлы данных (если используешь SQLite локально)
+*.db
+*.db-shm
+*.db-wal
+
+## --- [ VISUAL STUDIO ] ---
+.vs/
+*.user
+*.userosscache
+*.sln.doccache
+
+## --- [ VISUAL STUDIO CODE ] ---
+.vscode/
+# Если хочешь оставить настройки запуска, но скрыть личные данные:
+#!.vscode/launch.json
+#!.vscode/tasks.json
+
+## --- [ ЗАВИСИМОСТИ / ПАКЕТЫ ] ---
+# Папки NuGet пакетов
+*.nupkg
+node_modules/
+
+## --- [ ОПЕРАЦИОННЫЕ СИСТЕМЫ ] ---
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+## --- [ НАСТРОЙКИ СРЕДЫ (ENV) ] ---
+# Скрываем секреты и локальные настройки
+.env
+.env.local
+appsettings.Development.json
+# ВАЖНО: appsettings.json обычно оставляют, а Development версию скрывают, 
+# чтобы не "светить" пароли локальной БД.

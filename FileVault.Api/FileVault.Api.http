@@ -1,0 +1,6 @@
+@FileVault.Api_HostAddress = http://localhost:5018
+
+GET {{FileVault.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
