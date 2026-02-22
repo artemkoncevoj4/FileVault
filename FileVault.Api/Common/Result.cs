@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
-
-namespace FileVault.Api.Controllers;
-
 public class Result<T>
 {
     public bool IsSuccess { get; }

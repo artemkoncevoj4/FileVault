@@ -1,88 +1,65 @@
 using Microsoft.EntityFrameworkCore;
 using FileVault.Api.Database;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions 
 { 
+    // Указываем, где лежат наши статические файлы (HTML, CSS, JS)
     WebRootPath = "wwwroot/base/" 
 });
 
-var connection = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Configuration["Jwt:Key"] = "SuperSecretKey_DoNotShare_123456789";
+builder.Configuration["Jwt:Issuer"] = "FileVaultApi";
+builder.Configuration["Jwt:Audience"] = "FileVaultFront";
 
-
-
-builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlite(connection));
+
+builder.Services.AddDbContext<ApplicationContext>(options => 
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IPasswordHasher, BCryptHasher>();
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => {
+        options.TokenValidationParameters = new TokenValidationParameters {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
-
-app.UseStaticFiles();
-app.UseSwagger();
-app.UseSwaggerUI();
-
-app.MapControllers();
-
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
-    db.Database.Migrate(); 
+    db.Database.EnsureCreated(); 
 }
 
-app.MapGet("/users", async (ApplicationContext db) => await db.Users.ToListAsync());
-app.MapDelete("/users/{id}", async (int id, ApplicationContext db) => 
+
+
+if (app.Environment.IsDevelopment())
 {
-    var user = await db.Users.FindAsync(id);
-    if (user == null)
-    {
-        return Results.NotFound();
-    }
-    db.Users.Remove(user);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-});
-app.MapPost("/users", async (User user, ApplicationContext db) => 
-{
-    db.Users.Add(user);
-    await db.SaveChangesAsync();
-    return Results.Created($"/users/{user.Id}", user);
-});
-app.MapPut("/users/{id}", async (int id, User updatedUser, ApplicationContext db) => 
-{
-    var user = await db.Users.FindAsync(id);
-    if (user == null)
-    {
-        return Results.NotFound();
-    }
-    user.Login = updatedUser.Login;
-    user.PasswordHash = updatedUser.PasswordHash;
-    user.AccessLevel = updatedUser.AccessLevel;
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-});
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 
-app.Run(async (context) => 
-{
-    var path = context.Request.Path.Value ?? "/";
-    
-    
-    var fullPath = Path.Combine(app.Environment.ContentRootPath, path.TrimStart('/'));
+app.UseDefaultFiles(); 
+app.UseStaticFiles();
+app.UseRouting();
 
-    context.Response.ContentType = "text/html; charset=utf-8";
+app.UseAuthentication();
+app.UseAuthorization();
 
-    if (File.Exists(fullPath))
-    {
-        await context.Response.SendFileAsync(fullPath);
-    }
-    else
-    {
-        context.Response.StatusCode = 404;
-        await context.Response.WriteAsync($"<h2>404</h2><p>Искал тут: {fullPath}</p>");
-    }
-});
-
+app.MapControllers();
 
 app.Run();

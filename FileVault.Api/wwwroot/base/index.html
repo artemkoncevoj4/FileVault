@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileVault - Облако</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #1c1e21; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .panel { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .hidden { display: none; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #0056b3; }
+        .btn-danger { background: #dc3545; }
+        .btn-success { background: #28a745; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        .file-item { border: 1px solid #ddd; padding: 10px; margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>☁️ FileVault Storage</h1>
+
+    <div id="auth-panel" class="panel">
+        <h2>Вход в систему</h2>
+        <input type="text" id="loginInput" placeholder="Ваш логин">
+        <input type="password" id="passwordInput" placeholder="Пароль">
+        <button onclick="login()">Войти</button>
+        <button onclick="register()" class="btn-success">Создать аккаунт</button>
+        <p id="auth-msg" style="color: red;"></p>
+    </div>
+
+    <div id="profile-panel" class="panel hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 id="welcomeText">Привет!</h2>
+            <button onclick="logout()" class="btn-danger">Выйти</button>
+        </div>
+        <p>Ваш уровень доступа: <b id="userLevel"></b></p>
+    </div>
+
+    <div id="files-panel" class="panel hidden">
+        <h2>📂 Мои файлы</h2>
+        <div id="upload-section" class="hidden">
+            <p style="color: green;">✓ Вам доступна загрузка файлов (уровень 3+)</p>
+            <input type="file" id="fileInput">
+            <button onclick="alert('Тут будет логика загрузки!')">Загрузить на сервер</button>
+        </div>
+        <hr>
+        <div id="file-list">
+            <p>Загрузка списка файлов...</p>
+            </div>
+    </div>
+
+    <div id="admin-panel" class="panel hidden" style="border: 2px solid #ffc107;">
+        <h2>👑 Админ-центр</h2>
+        <table>
+            <thead><tr><th>ID</th><th>Логин</th><th>Уровень</th><th>Действие</th></tr></thead>
+            <tbody id="usersTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Главная функция для отправки запросов с Токеном
+    async function apiRequest(url, method = 'GET', body = null) {
+        const token = localStorage.getItem('vault_token');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const options = { method, headers };
+        if (body) options.body = JSON.stringify(body);
+
+        const response = await fetch(url, options);
+        if (response.status === 401 || response.status === 403) {
+            console.error("Нет доступа!");
+        }
+        return response;
+    }
+
+    async function login() {
+        const login = document.getElementById('loginInput').value;
+        const password = document.getElementById('passwordInput').value;
+
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ login, password })
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem('vault_token', data.token); // Сохраняем "паспорт"
+            localStorage.setItem('vault_user', JSON.stringify(data.user));
+            location.reload(); // Перезагружаем, чтобы UI обновился
+        } else {
+            document.getElementById('auth-msg').innerText = "Ошибка входа";
+        }
+    }
+
+    function logout() {
+        localStorage.clear();
+        location.reload();
+    }
+    async function register() {
+        const login = document.getElementById('loginInput').value;
+        const password = document.getElementById('passwordInput').value;
+
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ login, password })
+        });
+
+        if (response.ok) {
+            alert("Регистрация успешна! Теперь войдите.");
+        } else {
+            const error = await response.text();
+            alert("Ошибка: " + error);
+        }
+    }
+    async function deleteUser(userId) {
+        if (!confirm("Вы уверены, что хотите удалить этого пользователя?")) return;
+
+        const res = await apiRequest(`/api/admin/users/${userId}`, 'DELETE');
+        if (res.ok) {
+            alert("Пользователь удален");
+            loadAdminData(); // Перезагружаем список
+        } else {
+            const err = await res.text();
+            alert("Ошибка при удалении: " + err);
+        }
+    }
+    // При загрузке страницы
+    window.onload = async () => {
+        const userJson = localStorage.getItem('vault_user');
+        if (!userJson) return;
+
+        const user = JSON.parse(userJson);
+        const lvl = user.accessLevel;
+
+        // Показываем нужные блоки
+        document.getElementById('auth-panel').classList.add('hidden');
+        document.getElementById('profile-panel').classList.remove('hidden');
+        document.getElementById('files-panel').classList.remove('hidden');
+        
+        document.getElementById('welcomeText').innerText = `Привет, ${user.login}!`;
+        document.getElementById('userLevel').innerText = lvl;
+
+        // РАЗГРАНИЧЕНИЕ ДОСТУПА В ИНТЕРФЕЙСЕ
+        if (lvl >= 3) {
+            document.getElementById('upload-section').classList.remove('hidden');
+        }
+
+        if (lvl === 5) {
+            document.getElementById('admin-panel').classList.remove('hidden');
+            loadAdminData();
+        }
+        
+        loadFilesStub(lvl);
+    };
+
+    async function loadAdminData() {
+        const res = await apiRequest('/api/admin/users');
+        if (res.ok) {
+            const users = await res.json();
+            const tbody = document.getElementById('usersTable');
+            tbody.innerHTML = users.map(u => `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td>${u.login}</td>
+                        <td><input type="number" value="${u.accessLevel}" id="lvl-${u.id}" style="width:50px"></td>
+                        <td>
+                            <button onclick="changeLevel(${u.id})" class="btn-success">ОК</button>
+                            <button onclick="deleteUser(${u.id})" class="btn-danger" style="padding: 5px 10px;">Удалить</button>
+                        </td>
+                    </tr>
+            `).join('');
+        }
+    }
+
+    async function changeLevel(userId) {
+        const newLvl = document.getElementById(`lvl-${userId}`).value;
+        const res = await apiRequest(`/api/admin/users/${userId}/access`, 'PUT', parseInt(newLvl));
+        if (res.ok) alert("Уровень изменен!");
+    }
+
+    function loadFilesStub(lvl) {
+        const list = document.getElementById('file-list');
+        list.innerHTML = `
+            <div class="file-item">
+                <span>📄 Общий_отчет.pdf</span>
+                <button>Скачать</button>
+            </div>
+            ${lvl >= 4 ? `
+            <div class="file-item" style="color: blue;">
+                <span>🔒 Секретный_архив.zip (Только для lvl 4+)</span>
+                <button>Скачать</button>
+            </div>` : ''}
+        `;
+    }
+</script>
+</body>
+</html>

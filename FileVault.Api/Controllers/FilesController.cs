@@ -6,29 +6,19 @@ namespace FileVault.Api.Controllers;
 [Route("api/[controller]")]
 public class FilesController : ControllerBase
 {
-    [HttpGet("hello")]
-    public IActionResult SayHello()
+    [HttpGet("download/{fileName}")]
+    public IActionResult DownloadFile(string fileName)
     {
-        var result = GetHelloMessage();
+        // Извлекаем уровень доступа из токена
+        var levelClaim = User.FindFirst("AccessLevel")?.Value;
+        int userLevel = int.Parse(levelClaim ?? "0");
 
-        if (!result.IsSuccess)
+        if (fileName == "secret.zip" && userLevel < 4)
         {
-            return BadRequest(result.Error);
+            return Forbid("У вас недостаточно прав для этого файла!");
         }
 
-        return Ok(result.Value);
-    }
-
-    // Имитация метода "сервиса"
-    private Result<string> GetHelloMessage()
-    {
-        bool isServiceAvailable = true; 
-
-        if (!isServiceAvailable)
-        {
-            return Result<string>.Failure("Сервис временно недоступен");
-        }
-
-        return Result<string>.Success("Контроллер файлов готов к работе и использует Result Pattern!");
+        // Если всё ок — отдаем файл (тут будет твоя логика)
+        return Ok($"Файл {fileName} отправлен");
     }
 }
