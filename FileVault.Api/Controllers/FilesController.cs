@@ -22,7 +22,6 @@ public class FilesController : ControllerBase
     // Имитация метода "сервиса"
     private Result<string> GetHelloMessage()
     {
-        // Здесь могла быть логика проверки БД или прав доступа
         bool isServiceAvailable = true; 
 
         if (!isServiceAvailable)

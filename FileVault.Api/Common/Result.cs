@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FileVault.Api.Controllers;
 
-// Твой класс Result (для примера в одном файле)
 public class Result<T>
 {
     public bool IsSuccess { get; }
