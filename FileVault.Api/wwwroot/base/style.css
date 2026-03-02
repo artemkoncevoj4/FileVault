@@ -73,3 +73,20 @@ th, td {
     display: flex;
     justify-content: space-between;
 }
+.toast {
+    background-color: #333;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    transform: translateX(100%);
+}
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+.toast-success { background-color: #28a745; }
+.toast-error { background-color: #dc3545; }

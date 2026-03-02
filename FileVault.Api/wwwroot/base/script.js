@@ -38,7 +38,7 @@
             localStorage.setItem('vault_user', JSON.stringify(data.user));
             location.reload(); // Перезагружаем, чтобы UI обновился
         } else {
-            document.getElementById('auth-msg').innerText = "Ошибка входа";
+            showToast("Ошибка входа: Неверный логин или пароль", 'error');
         }
     }
 
@@ -57,10 +57,10 @@
         });
 
         if (response.ok) {
-            alert("Регистрация успешна! Теперь войдите.");
+            showToast("Регистрация успешна! Теперь войдите.");
         } else {
             const error = await response.text();
-            alert("Ошибка: " + error);
+            showToast("Ошибка регистрации: " + error, 'error');
         }
     }
     async function deleteUser(userId) {
@@ -69,10 +69,10 @@
 
         const res = await apiRequest(`/api/admin/users/${userId}`, 'DELETE');
         if (res.ok) {
-            alert("Пользователь удален");
+            showToast("Пользователь удален");
             loadAdminData();
         } else {
-            alert("Не удалось удалить пользователя");
+            showToast("Не удалось удалить пользователя", 'error');
         }
     }
     async function uploadFile() {
@@ -95,12 +95,12 @@
         });
 
         if (res.ok) {
-            alert("Файл успешно загружен на диск!");
+            showToast("Файл успешно загружен на диск!");
             fileInput.value = "";
             loadFiles(); 
         } else {
             const err = await res.text();
-            alert("Ошибка загрузки: " + err);
+            showToast("Ошибка загрузки: " + err, 'error');
         }
     }
     // При загрузке страницы
@@ -154,7 +154,7 @@
     async function changeLevel(userId) {
         const newLvl = document.getElementById(`lvl-${userId}`).value;
         const res = await apiRequest(`/api/admin/users/${userId}/access`, 'PUT', parseInt(newLvl));
-        if (res.ok) alert("Уровень изменен!");
+        if (res.ok) showToast("Уровень изменен!");
     }
 
         async function loadFiles() {
@@ -219,19 +219,19 @@
         async function lockFile(fileName) {
             const res = await apiRequest(`/api/files/lock/${fileName}`, 'PUT');
             if (res.ok) {
-                alert("Файл закрыт для уровней ниже 4");
+                showToast("Файл закрыт для уровней ниже 4");
                 loadFiles();
             } else {
-                alert("Ошибка при закрытии файла");
+                showToast("Ошибка при закрытии файла", 'error');
             }
         }
         async function unlockFile(fileName) {
             const res = await apiRequest(`/api/files/unlock/${fileName}`, 'PUT');
             if (res.ok) {
-                alert("Файл теперь доступен всем");
+                showToast("Файл теперь доступен всем");
                 loadFiles();
             } else {
-                alert("Ошибка при открытии файла");
+                showToast("Ошибка при открытии файла", 'error');
             }
         }
         let currentFileToRename = "";
@@ -256,7 +256,7 @@
             const oldName = currentFileToRename;
 
             if (!newNameRaw) {
-                alert("Имя не может быть пустым!");
+                showToast("Имя не может быть пустым!", 'error');
                 return;
             }
 
@@ -274,11 +274,11 @@
             });
 
             if (res.ok) {
-                alert("Файл переименован!");
+                showToast("Файл переименован!");
                 loadFiles(); // Перерисовываем список
             } else {
                 const err = await res.text();
-                alert("Ошибка сервера: " + err);
+                showToast("Ошибка сервера: " + err, 'error');
             }
         }
         async function downloadFile(fileName) {
@@ -299,7 +299,7 @@
             a.click();
             a.remove();
         } else {
-            alert("Ошибка при скачивании");
+            showToast("Ошибка при скачивании", 'error');
         }
     }
 
@@ -316,11 +316,28 @@
         const res = await apiRequest(`/api/files/delete/${fileName}`, 'DELETE');
         
         if (res.ok) {
-            alert("Файл удален");
+            showToast("Файл удален");
             await loadFiles(); 
         } else {
             const err = await res.text();
-            alert("Ошибка сервера при удалении: " + err);
+            showToast("Ошибка сервера при удалении: " + err, 'error');
         }
     }
-    
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerText = message;
+        
+        container.appendChild(toast);
+        
+        // Trigger animation
+        setTimeout(() => toast.classList.add('show'), 10);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+}
