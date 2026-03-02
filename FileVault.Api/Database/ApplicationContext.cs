@@ -10,8 +10,6 @@ public class ApplicationContext : DbContext
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-         modelBuilder.Entity<User>().HasData(
-                new User { Id = 1, Login = "artemkoncevoj4", PasswordHash = new BCryptHasher().Hash("Artemon@."), AccessLevel = 5 }
-            );
+        
     }
 }

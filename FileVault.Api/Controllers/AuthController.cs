@@ -59,7 +59,16 @@ public class AuthController : ControllerBase
 
     private string GenerateJwtToken(User user)
     {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+        var jwtKey = _config["JWT_KEY"];
+        var jwtIssuer = _config["JWT_ISSUER"] ?? "FileVaultApi";
+        var jwtAudience = _config["JWT_AUDIENCE"] ?? "FileVaultFront";
+
+        if (string.IsNullOrEmpty(jwtKey))
+        {
+            throw new InvalidOperationException("JWT_KEY is not configured!");
+        }
+
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[] {
@@ -68,13 +77,14 @@ public class AuthController : ControllerBase
             new Claim("AccessLevel", user.AccessLevel.ToString())
         };
 
-        var token = new JwtSecurityToken(_config["Jwt:Issuer"],
-            _config["Jwt:Audience"],
+        var token = new JwtSecurityToken(
+            jwtIssuer,                
+            jwtAudience,              
             claims,
             expires: DateTime.Now.AddHours(3),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-public record AuthRequest(string Login, string Password);
+    public record AuthRequest(string Login, string Password);
 }
