@@ -37,7 +37,7 @@
 
         if (res.ok) {
             const data = await res.json();
-            // УДАЛЯЕМ: localStorage.setItem('vault_token', data.token); 
+            
             
             // Сохраняем только данные профиля (они нужны для UI)
             localStorage.setItem('vault_user', JSON.stringify(data.user));
@@ -49,10 +49,59 @@
         }
     }
 
-    function logout() {
-        localStorage.clear();
-        location.reload();
+    function checkAuth() {
+        const userData = localStorage.getItem('vault_user');
+        
+        if (userData) {
+            const user = JSON.parse(userData);
+            // Скрываем панель входа, показываем профиль и файлы
+            document.getElementById('auth-panel').classList.add('hidden');
+            document.getElementById('profile-panel').classList.remove('hidden');
+            document.getElementById('files-panel').classList.remove('hidden');
+            
+            document.getElementById('welcomeText').innerText = `Привет, ${user.login}!`;
+            document.getElementById('userLevel').innerText = user.accessLevel;
+
+            // Если админ — показываем админку
+            if (user.accessLevel >= 5) {
+                document.getElementById('admin-panel').classList.remove('hidden');
+                loadUsers();
+            }
+
+            // Если уровень 3+ — показываем секцию загрузки
+            if (user.accessLevel >= 3) {
+                document.getElementById('upload-section').classList.remove('hidden');
+            }
+
+            loadFiles(); // Загружаем список файлов
+        } else {
+            // Если данных нет — показываем только форму входа
+            document.getElementById('auth-panel').classList.remove('hidden');
+            document.getElementById('profile-panel').classList.add('hidden');
+            document.getElementById('files-panel').classList.add('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+        }
     }
+
+    async function logout() {
+        try {
+            // 1. Пытаемся удалить куку на сервере
+            await fetch('/api/auth/logout', { 
+                method: 'POST',
+                credentials: 'same-origin' 
+            });
+        } catch (e) {
+            console.error("Ошибка при запросе на логаут:", e);
+        }
+
+        // 2. Очищаем данные пользователя из браузера
+        localStorage.removeItem('vault_user');
+        localStorage.removeItem('vault_token'); // На всякий случай, если остался старый
+
+        // 3. Полностью перезагружаем страницу, чтобы сбросить состояние интерфейса
+        window.location.reload();
+    }
+
     async function register() {
         const login = document.getElementById('loginInput').value;
         const password = document.getElementById('passwordInput').value;
@@ -374,3 +423,5 @@
             setTimeout(() => toast.remove(), 500);
         }, 3000);
 }
+// Запускаем проверку при каждой загрузке страницы
+document.addEventListener('DOMContentLoaded', checkAuth);
