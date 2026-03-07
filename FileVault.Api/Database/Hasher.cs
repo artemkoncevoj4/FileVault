@@ -10,7 +10,6 @@ public interface IPasswordHasher
 
 public class BCryptHasher : IPasswordHasher
 {
-    // Cost 11 — золотая середина для 1 ядра CPU
     public string Hash(string password) => 
         BCrypt.Net.BCrypt.HashPassword(password, 11);
 
