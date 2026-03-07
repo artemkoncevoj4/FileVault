@@ -1,5 +1,15 @@
 
     // Главная функция для отправки запросов с Токеном
+document.getElementById('fileInput').addEventListener('change', function() {
+    const display = document.getElementById('fileNameDisplay');
+    if (this.files && this.files[0]) {
+        display.innerText = "Выбран файл: " + this.files[0].name;
+        display.style.color = "#28a745"; // Зеленый цвет при успехе
+    } else {
+        display.innerText = "Файл не выбран";
+        display.style.color = "#666";
+    }
+});
     async function apiRequest(url, method = 'GET', body = null) {
         const headers = { 'Content-Type': 'application/json' };
         

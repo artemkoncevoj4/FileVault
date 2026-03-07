@@ -95,13 +95,8 @@ body {
 input[type="text"],
 input[type="password"],
 input[type="file"] {
-    width: 100%;
-    padding: 12px 15px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 14px;
-    transition: 0.2s;
+    /* padding: 12px 15px;  <-- Это часто мешает на мобилках */
+    background: white;
 }
 
 input[type="text"]:focus,
@@ -212,7 +207,50 @@ th, td {
 
 .footer-links { margin-top: 10px; }
 .footer-links a { color: #007bff; text-decoration: none; margin: 0 5px; }
+.mobile-input-container {
+    margin: 20px 0;
+    text-align: center;
+}
 
+.file-label {
+    display: inline-block;
+    font-size: 18px; /* Сделали крупнее */
+    color: #007bff;
+    text-decoration: underline; /* Подчеркивание для понятности */
+    padding: 15px 20px;
+    border: 2px dashed #007bff;
+    border-radius: 8px;
+    background-color: rgba(0, 123, 255, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.file-label:active {
+    background-color: rgba(0, 123, 255, 0.15);
+    transform: scale(0.98);
+}
+
+.file-text {
+    font-weight: 600;
+}
+
+.file-name-hint {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+.hidden-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
 /* =========================================
    МОДАЛЬНЫЕ ОКНА (ВСПЛЫВАЮТ ПО ЦЕНТРУ)
    ========================================= */
