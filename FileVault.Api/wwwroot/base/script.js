@@ -1,23 +1,26 @@
 
     // Главная функция для отправки запросов с Токеном
     async function apiRequest(url, method = 'GET', body = null) {
-        console.log(`[API] Запрос: ${method} ${url}`, body); // ЛОГ В КОНСОЛЬ
-        const token = localStorage.getItem('vault_token');
         const headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        const options = { method, headers };
+        
+        const options = { 
+            method, 
+            headers,
+            // Добавляем это, чтобы fetch корректно работал с куками
+            credentials: 'same-origin' 
+        };
+        
         if (body) options.body = JSON.stringify(body);
 
         try {
             const response = await fetch(url, options);
-            console.log(`[API] Ответ от ${url}: ${response.status}`);
-            if (response.status === 401 || response.status === 403) {
-                console.error("Ошибка прав доступа (401/403)");
+            if (response.status === 401) {
+                showToast("Сессия истекла", "error");
+                logout();
+                return { ok: false };
             }
             return response;
         } catch (e) {
-            console.error("[API] Критическая ошибка fetch:", e);
             return { ok: false };
         }
     }
@@ -34,18 +37,71 @@
 
         if (res.ok) {
             const data = await res.json();
-            localStorage.setItem('vault_token', data.token); // Сохраняем "паспорт"
+            
+            
+            // Сохраняем только данные профиля (они нужны для UI)
             localStorage.setItem('vault_user', JSON.stringify(data.user));
-            location.reload(); // Перезагружаем, чтобы UI обновился
+            
+            showToast("Вход выполнен!");
+            checkAuth(); 
         } else {
-            showToast("Ошибка входа: Неверный логин или пароль", 'error');
+            showToast("Ошибка входа", "error");
         }
     }
 
-    function logout() {
-        localStorage.clear();
-        location.reload();
+    function checkAuth() {
+        const userData = localStorage.getItem('vault_user');
+        
+        if (userData) {
+            const user = JSON.parse(userData);
+            // Скрываем панель входа, показываем профиль и файлы
+            document.getElementById('auth-panel').classList.add('hidden');
+            document.getElementById('profile-panel').classList.remove('hidden');
+            document.getElementById('files-panel').classList.remove('hidden');
+            
+            document.getElementById('welcomeText').innerText = `Привет, ${user.login}!`;
+            document.getElementById('userLevel').innerText = user.accessLevel;
+
+            // Если админ — показываем админку
+            if (user.accessLevel >= 5) {
+                document.getElementById('admin-panel').classList.remove('hidden');
+                loadUsers();
+            }
+
+            // Если уровень 3+ — показываем секцию загрузки
+            if (user.accessLevel >= 3) {
+                document.getElementById('upload-section').classList.remove('hidden');
+            }
+
+            loadFiles(); // Загружаем список файлов
+        } else {
+            // Если данных нет — показываем только форму входа
+            document.getElementById('auth-panel').classList.remove('hidden');
+            document.getElementById('profile-panel').classList.add('hidden');
+            document.getElementById('files-panel').classList.add('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+        }
     }
+
+    async function logout() {
+        try {
+            // 1. Пытаемся удалить куку на сервере
+            await fetch('/api/auth/logout', { 
+                method: 'POST',
+                credentials: 'same-origin' 
+            });
+        } catch (e) {
+            console.error("Ошибка при запросе на логаут:", e);
+        }
+
+        // 2. Очищаем данные пользователя из браузера
+        localStorage.removeItem('vault_user');
+        localStorage.removeItem('vault_token'); // На всякий случай, если остался старый
+
+        // 3. Полностью перезагружаем страницу, чтобы сбросить состояние интерфейса
+        window.location.reload();
+    }
+
     async function register() {
         const login = document.getElementById('loginInput').value;
         const password = document.getElementById('passwordInput').value;
@@ -75,34 +131,60 @@
             showToast("Не удалось удалить пользователя", 'error');
         }
     }
-    async function uploadFile() {
-        const fileInput = document.getElementById('fileInput');
-        if (fileInput.files.length === 0) return;
+    function uploadFile() {
+    const fileInput = document.getElementById('fileInput');
+    const xhr = new XMLHttpRequest();
 
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
+    if (!fileInput.files[0]) return showToast("Выберите файл", "error");
 
-        const token = localStorage.getItem('vault_token');
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
 
-        // Используем fetch напрямую, так как FormData конфликтует с заголовком JSON в apiRequest
-        const res = await fetch('/api/files/upload', {
-            method: 'POST',
-            headers: { 
-                'Authorization': `Bearer ${token}`
-                // Content-Type НЕ ПИШЕМ!
-            },
-            body: formData
-        });
+    xhr.withCredentials = true; 
 
-        if (res.ok) {
-            showToast("Файл успешно загружен на диск!");
-            fileInput.value = "";
-            loadFiles(); 
-        } else {
-            const err = await res.text();
-            showToast("Ошибка загрузки: " + err, 'error');
+    // Элементы прогресс-бара
+    const container = document.getElementById('progress-container');
+    const bar = document.getElementById('progress-bar');
+    const text = document.getElementById('progress-text');
+
+    container.classList.remove('hidden');
+    text.classList.remove('hidden');
+
+    // 1. Отслеживаем прогресс
+    xhr.upload.onprogress = function(event) {
+        if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            bar.style.width = percent + '%';
+            text.innerText = `Загрузка: ${percent}%`;
         }
-    }
+    };
+
+    // 2. Обработка завершения
+    xhr.onload = async function() {
+        container.classList.add('hidden');
+        text.classList.add('hidden');
+        bar.style.width = '0%';
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+            showToast("Файл успешно загружен");
+            fileInput.value = ''; // Сброс поля
+            await loadFiles();
+        } else {
+            showToast("Ошибка загрузки: " + xhr.responseText, "error");
+        }
+    };
+
+    // 3. Ошибка сети
+    xhr.onerror = function() {
+        showToast("Критическая ошибка сети", "error");
+        container.classList.add('hidden');
+    };
+
+    xhr.open('POST', '/api/files/upload');
+    xhr.send(formData);
+
+}
     // При загрузке страницы
     window.onload = async () => {
         const userJson = localStorage.getItem('vault_user');
@@ -341,3 +423,5 @@
             setTimeout(() => toast.remove(), 500);
         }, 3000);
 }
+// Запускаем проверку при каждой загрузке страницы
+document.addEventListener('DOMContentLoaded', checkAuth);

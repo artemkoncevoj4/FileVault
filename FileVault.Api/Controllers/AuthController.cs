@@ -51,12 +51,29 @@ public class AuthController : ControllerBase
         // Создаем токен
         var token = GenerateJwtToken(user);
         
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true, // Запрещает доступ из JavaScript (защита от XSS)
+            Secure = true,   // Передавать только по HTTPS (на локалке можно false для тестов)
+            SameSite = SameSiteMode.Strict, // Защита от CSRF-атак
+            Expires = DateTime.UtcNow.AddHours(3) // Время жизни как у токена
+        };
+
+        Response.Cookies.Append("jwtToken", token, cookieOptions);
+
         return Ok(new { 
-            token = token,
+            message = "Успешный вход",
             user = new UserDto(user.Id, user.Login, user.AccessLevel)
         });
     }
 
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("jwtToken");
+        return Ok("Вы вышли из системы");
+    }
+    
     private string GenerateJwtToken(User user)
     {
         var jwtKey = _config["JWT_KEY"];

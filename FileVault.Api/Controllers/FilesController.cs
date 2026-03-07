@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using FileVault.Api.Utils;
 namespace FileVault.Api.Controllers;
 
 [ApiController]
@@ -9,27 +10,85 @@ public class FilesController : ControllerBase
     private readonly string _storagePath;
     public FilesController()
     {
-        // Путь к папке, где будут лежать файлы
-        _storagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/FilesStorage");
+        _storagePath = Path.Combine(Directory.GetCurrentDirectory(), "Storage");
         
         if (!Directory.Exists(_storagePath)) Directory.CreateDirectory(_storagePath);
     }
 
-    [HttpPost("upload")]
+    [HttpPut("lock/{fileName}")]
+public IActionResult LockFile(string fileName)
+{
+    try 
+    {
+        var userLevel = GetUserLevel();
+        if (userLevel < 4) return Forbid("Недостаточный уровень доступа");
+
+        if (fileName.StartsWith("locked_")) return BadRequest("Файл уже заблокирован");
+
+        // Санитизируем входящий путь
+        var oldPath = PathSanitizer.GetSafePath(_storagePath, fileName);
+        if (!System.IO.File.Exists(oldPath)) return NotFound("Файл не найден");
+
+        // Проверка владения (как в Delete): только владелец или админ (5+)
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userLevel < 5 && !fileName.Contains($"{userId}_"))
+            return StatusCode(403, "Вы можете блокировать только свои файлы");
+
+        var newFileName = "locked_" + fileName;
+        var newPath = PathSanitizer.GetSafePath(_storagePath, newFileName);
+
+        if (System.IO.File.Exists(newPath)) return BadRequest("Целевой файл уже существует");
+
+        System.IO.File.Move(oldPath, newPath);
+        return Ok(new { newName = newFileName });
+    }
+    catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+}
+
+[HttpPut("unlock/{fileName}")]
+public IActionResult UnlockFile(string fileName)
+{
+    try 
+    {
+        var userLevel = GetUserLevel();
+        if (userLevel < 4) return Forbid("Недостаточный уровень доступа");
+
+        if (!fileName.StartsWith("locked_")) return BadRequest("Файл не заблокирован");
+
+        var oldPath = PathSanitizer.GetSafePath(_storagePath, fileName);
+        if (!System.IO.File.Exists(oldPath)) return NotFound("Файл не найден");
+
+        // Проверка владения
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userLevel < 5 && !fileName.Contains($"{userId}_"))
+            return StatusCode(403, "Вы можете разблокировать только свои файлы");
+
+        var newName = fileName.Replace("locked_", "");
+        var newPath = PathSanitizer.GetSafePath(_storagePath, newName);
+
+        if (System.IO.File.Exists(newPath)) return BadRequest("Файл с таким именем уже существует");
+
+        System.IO.File.Move(oldPath, newPath);
+        return Ok(new { newName });
+    }
+    catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+}
+
+[HttpPost("upload")]
     public async Task<IActionResult> UploadFile(IFormFile file)
     {
         var userLevel = GetUserLevel();
         if (userLevel < 3) return StatusCode(403, "Загрузка доступна с уровня 3");
-
-        // Получаем ID пользователя из токена
-        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
-
         if (file == null || file.Length == 0) return BadRequest("Файл не выбран");
 
-        // Формат: ID_FileName (например 1_report.pdf)
-        var fileName = $"{userId}_{Path.GetFileName(file.FileName)}";
-        var filePath = Path.Combine(_storagePath, fileName);
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
+        
+        // Санитизируем имя оригинального файла перед сохранением
+        var safeFileName = Path.GetFileName(file.FileName);
+        var fileName = $"{userId}_{safeFileName}";
+        var filePath = PathSanitizer.GetSafePath(_storagePath, fileName);
 
+        // CopyToAsync уже работает как поток, тут оптимизация не требуется
         using (var stream = new FileStream(filePath, FileMode.Create))
         {
             await file.CopyToAsync(stream);
@@ -37,116 +96,70 @@ public class FilesController : ControllerBase
 
         return Ok(new { message = "Файл загружен", name = fileName });
     }
-    [HttpPut("lock/{fileName}")]
-    public IActionResult LockFile(string fileName)
-    {
-        var userLevel = GetUserLevel();
-        if (userLevel < 4) return Forbid();
-
-        if (fileName.StartsWith("locked_")) return BadRequest("Файл уже закрыт");
-
-        var oldPath = Path.Combine(_storagePath, fileName);
-        var newPath = Path.Combine(_storagePath, "locked_" + fileName);
-
-        if (!System.IO.File.Exists(oldPath)) return NotFound();
-
-        System.IO.File.Move(oldPath, newPath);
-        return Ok(new { newName = "locked_" + fileName });
-    }
-    [HttpPut("unlock/{fileName}")]
-    public IActionResult UnlockFile(string fileName)
-    {
-        var userLevel = GetUserLevel();
-        if (userLevel < 4) return Forbid();
-
-        if (!fileName.StartsWith("locked_")) return BadRequest("Файл и так открыт");
-
-        var oldPath = Path.Combine(_storagePath, fileName);
-        var newName = fileName.Replace("locked_", "");
-        var newPath = Path.Combine(_storagePath, newName);
-
-        if (!System.IO.File.Exists(oldPath)) return NotFound();
-
-        System.IO.File.Move(oldPath, newPath);
-        return Ok(new { newName });
-    }
-
-        [HttpPut("rename")]
-        [Authorize]
-        public IActionResult RenameFile([FromBody] RenameRequest req)
-        {
-            var userLevel = GetUserLevel();
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(req.OldName) || string.IsNullOrEmpty(req.NewName))
-                return BadRequest("Имена не могут быть пустыми");
-
-            var oldPath = Path.Combine(_storagePath, req.OldName);
-            if (!System.IO.File.Exists(oldPath)) return NotFound("Файл не найден");
-
-            // ЛОГИКА ПРАВ:
-            // Проверяем, начинается ли имя с "ID_" текущего юзера
-            bool isOwner = req.OldName.Contains($"{userId}_");
-            bool isAdmin = userLevel >= 5;
-
-            if (!isOwner && !isAdmin) 
-                return StatusCode(403, "Вы можете переименовывать только свои файлы");
-
-            // При переименовании ВАЖНО сохранить ID владельца в начале нового имени
-            // Вытаскиваем префикс (например "1_") из старого имени
-            var prefix = req.OldName.Substring(0, req.OldName.IndexOf('_') + 1);
-            
-            // Новое имя должно быть: [locked_] + префикс + новое_имя
-            // Но для простоты, если юзер вводит "doc2.pdf", мы превращаем это в "1_doc2.pdf"
-            var newFileName = req.NewName.Contains("_") ? req.NewName : prefix + req.NewName;
-            var newPath = Path.Combine(_storagePath, newFileName);
-
-            if (System.IO.File.Exists(newPath)) return BadRequest("Файл с таким именем уже есть");
-
-            System.IO.File.Move(oldPath, newPath);
-            return Ok(new { newName = newFileName });
-        }
-
 
     [HttpGet("download/{fileName}")]
     public IActionResult DownloadFile(string fileName)
     {
-        var filePath = Path.Combine(_storagePath, fileName);
-        if (!System.IO.File.Exists(filePath)) return NotFound();
-
-        var userLevel = GetUserLevel();
-        // Проверка: закрытые файлы только для 4 и 5 уровня
-        if (fileName.StartsWith("locked_") && userLevel < 4)
+        try 
         {
-            return Forbid("Доступ к этому файлу ограничен (нужен уровень 4+)");
-        }
+            var filePath = PathSanitizer.GetSafePath(_storagePath, fileName);
+            if (!System.IO.File.Exists(filePath)) return NotFound();
 
-        var bytes = System.IO.File.ReadAllBytes(filePath);
-        return File(bytes, "application/octet-stream", fileName);
+            var userLevel = GetUserLevel();
+            if (fileName.StartsWith("locked_") && userLevel < 4)
+                return Forbid("Доступ ограничен (нужен уровень 4+)");
+
+            // ОПТИМИЗАЦИЯ: Вместо ReadAllBytes возвращаем PhysicalFile.
+            // Это позволяет серверу не грузить весь файл в RAM, а отдавать его по кусочкам.
+            return PhysicalFile(filePath, "application/octet-stream", fileName);
+        }
+        catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
     }
 
     [HttpDelete("delete/{fileName}")]
     public IActionResult DeleteFile(string fileName)
     {
-        var userLevel = GetUserLevel();
-        var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-        var filePath = Path.Combine(_storagePath, fileName);
-        if (!System.IO.File.Exists(filePath)) return NotFound();
-
-        // Логика прав на удаление:
-        // 1. Если админ (lvl 5) — можно всё.
-        // 2. Иначе проверяем, начинается ли файл с ID текущего пользователя.
-        bool isAdmin = userLevel >= 5;
-        bool isOwner = fileName.Contains($"{currentUserId}_");
-
-        if (isAdmin || isOwner)
+        try 
         {
+            var filePath = PathSanitizer.GetSafePath(_storagePath, fileName);
+            if (!System.IO.File.Exists(filePath)) return NotFound();
+
+            var userLevel = GetUserLevel();
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (userLevel < 5 && !fileName.Contains($"{userId}_"))
+                return StatusCode(403, "Вы можете удалять только свои файлы");
+
             System.IO.File.Delete(filePath);
             return Ok("Файл удален");
         }
+        catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
+    }
 
-        return StatusCode(403, "Вы можете удалять только свои файлы");
+    [HttpPut("rename")]
+    public IActionResult RenameFile([FromBody] RenameRequest req)
+    {
+        try 
+        {
+            var oldPath = PathSanitizer.GetSafePath(_storagePath, req.OldName);
+            if (!System.IO.File.Exists(oldPath)) return NotFound("Файл не найден");
+
+            var userLevel = GetUserLevel();
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (userLevel < 5 && !req.OldName.Contains($"{userId}_"))
+                return StatusCode(403, "Вы можете переименовать только свои файлы");
+
+            var prefix = req.OldName.Substring(0, req.OldName.IndexOf('_') + 1);
+            var newFileName = req.NewName.Contains("_") ? req.NewName : prefix + req.NewName;
+            
+            var newPath = PathSanitizer.GetSafePath(_storagePath, newFileName);
+            if (System.IO.File.Exists(newPath)) return BadRequest("Файл с таким именем уже есть");
+
+            System.IO.File.Move(oldPath, newPath);
+            return Ok(new { newName = newFileName });
+        }
+        catch (UnauthorizedAccessException ex) { return Forbid(ex.Message); }
     }
 
     private int GetUserLevel()

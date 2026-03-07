@@ -7,7 +7,7 @@ namespace FileVault.Api.Controllers;
 
 [ApiController]
 [Route("api/admin")]
-[Authorize] // Только для вошедших
+[Authorize]
 public class AdminController : ControllerBase
 {
     private readonly ApplicationContext _db;
@@ -17,11 +17,10 @@ public class AdminController : ControllerBase
     [HttpGet("users")]
     public async Task<IActionResult> GetAllUsers()
     {
-        // Проверка уровня прямо в коде (или через Policy)
         if (!IsAdmin()) return Forbid();
 
         var users = await _db.Users
-            .Select(u => new UserDto(u.Id, u.Login, u.AccessLevel)) // Скрываем хеши!
+            .Select(u => new UserDto(u.Id, u.Login, u.AccessLevel))
             .ToListAsync();
         return Ok(users);
     }
@@ -42,14 +41,14 @@ public class AdminController : ControllerBase
     [Authorize]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        // Проверка уровня доступа (только для 5)
+        
         if (User.FindFirst("AccessLevel")?.Value != "5") 
             return Forbid();
 
         var user = await _db.Users.FindAsync(id);
         if (user == null) return NotFound("Пользователь не найден");
 
-        // Не даем админу удалить самого себя (опционально, но полезно)
+        
         var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (currentUserId == id.ToString())
             return BadRequest("Вы не можете удалить свою собственную учетную запись");

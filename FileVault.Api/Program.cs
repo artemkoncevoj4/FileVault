@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DotNetEnv;
+using Microsoft.AspNetCore.Http.Features;
 
 Env.Load();
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions 
 { 
-    // Указываем, где лежат наши статические файлы (HTML, CSS, JS)
     WebRootPath = "wwwroot/base/" 
 });
 builder.Configuration.AddEnvironmentVariables();
@@ -27,12 +27,30 @@ var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "FileVaultAp
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "FileVaultFront";
 
 builder.Services.AddControllers();
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = long.MaxValue;
+    options.ValueLengthLimit = int.MaxValue;
+    options.MemoryBufferThreshold = int.MaxValue;
+});
+
+// 2. Снимаем лимит самого сервера Kestrel
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = null; // null = безлимитно
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Регистрация ApplicationContext и IPasswordHasher
 builder.Services.AddDbContext<ApplicationContext>(options => 
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<IPasswordHasher, BCryptHasher>();
+builder.Services.AddSingleton<IPasswordHasher, BCryptHasher>();
+
+// Регистрация глобального обработчика исключений
+builder.Services.AddExceptionHandler<FileVault.Api.Utils.GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => {
@@ -44,6 +62,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Cookies.ContainsKey("jwtToken"))
+                {
+                    context.Token = context.Request.Cookies["jwtToken"];
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -68,8 +97,6 @@ using (var scope = app.Services.CreateScope())
         };
         db.Users.Add(admin);
         db.SaveChanges();
-        Console.WriteLine($"[SEED] Администратор {adminLogin} успешно создан.");
-        Console.WriteLine($"[SEED] Пароль: {adminPassword}, Хеш: {admin.PasswordHash}");
     }
 }
 
@@ -80,7 +107,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+else
+{
+    app.UseExceptionHandler("/error"); 
+    app.UseHsts(); 
+}
 
 app.UseDefaultFiles(); 
 app.UseStaticFiles();
