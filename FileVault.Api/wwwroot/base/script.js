@@ -37,15 +37,23 @@
 
         if (res.ok) {
             const data = await res.json();
-            
-            
-            // Сохраняем только данные профиля (они нужны для UI)
             localStorage.setItem('vault_user', JSON.stringify(data.user));
             
             showToast("Вход выполнен!");
+            
+            // 1. Переключаем экраны
             checkAuth(); 
+            
+            // 2. СРАЗУ грузим файлы (для всех)
+            loadFiles(); 
+            
+            // 3. Если зашел админ (level 5+), принудительно грузим список юзеров
+            if (data.user.accessLevel >= 5) {
+                setTimeout(() => loadUsers(), 100); // Небольшая задержка, чтобы DOM успел обновиться
+            }
         } else {
-            showToast("Ошибка входа", "error");
+        const error = await res.text();
+        showToast("Ошибка входа: " + error, 'error');
         }
     }
 
@@ -407,21 +415,72 @@
     }
     function showToast(message, type = 'success') {
         const container = document.getElementById('toast-container');
-        
+        if (!container) return;
+
         const toast = document.createElement('div');
+        // Используем классы для стилей
         toast.className = `toast toast-${type}`;
         toast.innerText = message;
         
         container.appendChild(toast);
         
-        // Trigger animation
         setTimeout(() => toast.classList.add('show'), 10);
         
-        // Remove after 3 seconds
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 500);
         }, 3000);
-}
-// Запускаем проверку при каждой загрузке страницы
-document.addEventListener('DOMContentLoaded', checkAuth);
+    }
+    // Запускаем проверку при каждой загрузке страницы
+  document.addEventListener('DOMContentLoaded', () => {
+    checkAuth();
+});
+
+
+    function showTerms() {
+        const terms = `
+    TERMS OF SERVICE (International Private Resource)
+
+    1. GLOBAL SCOPE: This resource is a private educational project hosted globally. It does not fall under the jurisdiction of the Russian Federation.
+    2. CONTENT POLICY: Users are strictly prohibited from uploading illegal content, malware, or any data that violates international copyright laws.
+    3. NO WARRANTY: The service is provided "AS IS". The creator (artemkoncevoj4) is not responsible for any data loss or service interruptions.
+    4. DATA PRIVACY: We do not collect personal identities. Your login is used only for access control.
+    5. TERMINATION: The administrator reserves the right to terminate any account without prior notice for any reason.
+        `;
+        document.getElementById('legal-title').innerText = "Legal Information";
+        document.getElementById('legal-content').innerText = terms;
+        document.getElementById('legal-modal').classList.remove('hidden');
+    }
+
+    // Функцию register() оставляем как в твоем исходном файле, без инвайт-кода
+    async function register() {
+        const login = document.getElementById('loginInput').value;
+        const password = document.getElementById('passwordInput').value;
+
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ login, password })
+        });
+
+        if (response.ok) {
+            showToast("Регистрация успешна! Теперь войдите.");
+        } else {
+            const error = await response.text();
+            showToast("Ошибка регистрации: " + error, 'error');
+        }
+    }
+    function showPrivacy() {
+        const privacyText = `
+    PRIVACY POLICY
+
+    1. DATA COLLECTION: We collect only the minimum data required for authentication: your username and a salted hash of your password.
+    2. NO PERSONAL INFO: This service does not request, store, or process real names, emails, or phone numbers.
+    3. COOKIES & SESSIONS: We use local storage and secure cookies only to keep you logged in. No tracking scripts are used.
+    4. THIRD PARTIES: No data is ever shared with third-party advertisers or analytics companies.
+    5. DATA LOCATION: Your encrypted data is stored on a private server managed by artemkoncevoj4.
+        `;
+        document.getElementById('legal-title').innerText = "Privacy Policy";
+        document.getElementById('legal-content').innerText = privacyText;
+        document.getElementById('legal-modal').classList.remove('hidden');
+    }

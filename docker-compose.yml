@@ -2,14 +2,30 @@ services:
   filevault:
     build: .
     container_name: filevault_api
-    ports:
-      - "80:8080"
+    expose:
+      - "8080" # Внутренний порт для Caddy
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - JWT_KEY=VashSuperSekretniyKlyuchDlyaJWT1234567890
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=твой_пароль_здесь
+      - ADMIN_USERNAME=
+      - ADMIN_PASSWORD=
     volumes:
       - ./Storage:/app/Storage
       - ./database.db:/app/database.db
     restart: always
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: always
+
+volumes:
+  caddy_data:
+  caddy_config:
