@@ -9,13 +9,15 @@
 <body>
 
     <header class="main-header">
-        <div class="container header-content">
+        <div class="header-content">
             <h1>☁️ FileVault Storage</h1>
             <span class="author-tag">by artemkoncevoj4</span>
         </div>
     </header>
 
-    <div class="container" style="margin-top: 100px;"> <div id="auth-panel" class="panel auth-card">
+    <main class="container">
+        
+        <div id="auth-panel" class="panel auth-card">
             <h2>Вход в систему</h2>
             <input type="text" id="loginInput" placeholder="Ваш логин">
             <input type="password" id="passwordInput" placeholder="Пароль">
@@ -26,7 +28,7 @@
         </div>
 
         <div id="profile-panel" class="panel hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="panel-header">
                 <h2 id="welcomeText">Привет!</h2>
                 <button onclick="logout()" class="btn-danger">Выйти</button>
             </div>
@@ -34,29 +36,26 @@
         </div>
 
         <div id="files-panel" class="panel hidden">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="margin: 0;">📂 Мои файлы</h2>
+            <h2>📂 Мои файлы</h2>
+            
+            <div id="upload-section" class="upload-zone hidden">
+                <p class="success-text">✓ Вам доступна загрузка файлов (уровень 3+)</p>
+                <input type="file" id="fileInput">
+                <button onclick="uploadFile()" class="upload-btn">Загрузить на сервер</button>
+                
+                <div id="progress-container" class="progress-wrapper hidden">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+                <small id="progress-text" class="hidden text-center">0%</small>
             </div>
             
-            <div id="upload-section" class="hidden">
-                <div class="upload-zone">
-                    <p style="color: green; font-size: 0.9em; margin-bottom: 10px;">✓ Вам доступна загрузка (уровень 3+)</p>
-                    <input type="file" id="fileInput">
-                    <button onclick="uploadFile()" style="width: 100%; margin-top: 10px;">Загрузить на сервер</button>
-                    
-                    <div id="progress-container" class="hidden" style="margin-top: 15px; background: #eee; border-radius: 10px; overflow: hidden;">
-                        <div id="progress-bar" style="width: 0%; height: 8px; background: #28a745; transition: width 0.2s;"></div>
-                    </div>
-                    <small id="progress-text" class="hidden">0%</small>
-                </div>
-            </div>
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            <hr class="divider">
             <div id="file-list"><p>Загрузка списка файлов...</p></div>
         </div>
 
-        <div id="admin-panel" class="panel hidden admin-card">
+        <div id="admin-panel" class="panel admin-card hidden">
             <h2>👑 Админ-центр</h2>
-            <div style="overflow-x: auto;">
+            <div class="table-responsive">
                 <table>
                     <thead><tr><th>ID</th><th>Логин</th><th>Уровень</th><th>Действие</th></tr></thead>
                     <tbody id="usersTable"></tbody>
@@ -71,31 +70,33 @@
                 <a href="#" onclick="showPrivacy()">Privacy Policy</a>
             </div>
         </footer>
-    </div>
 
-    <div id="legal-modal" class="modal hidden">
-        <div class="panel modal-content" style="max-width: 500px; padding: 30px;">
-            <h2 id="legal-title" style="margin-top: 0; color: #007bff;"></h2>
-            <div id="legal-content" style="font-size: 14px; line-height: 1.6; color: #444; margin-bottom: 20px; text-align: left;"></div>
-            <div style="text-align: center;"> <button onclick="document.getElementById('legal-modal').classList.add('hidden')" style="padding: 10px 40px;">I Understand</button>
+    </main>
+
+    <div id="legal-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h2 id="legal-title" class="modal-title"></h2>
+            <div id="legal-content" class="modal-text"></div>
+            <div class="modal-actions">
+                <button onclick="document.getElementById('legal-modal').classList.add('hidden')">I Understand</button>
             </div>
         </div>
     </div>
 
-    <div id="rename-modal" class="modal hidden">
-        <div class="panel modal-content">
-            <h3>✏️ Переименовать</h3>
-            <p style="color: gray; font-size: 13px;">Старое имя: <b id="renameOldNameDisplay"></b></p>
+    <div id="rename-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 class="modal-title">✏️ Переименовать</h3>
+            <p class="modal-subtitle">Старое имя: <b id="renameOldNameDisplay"></b></p>
             <input type="text" id="renameInput" placeholder="Новое имя">
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button onclick="closeRenameModal()" style="background: #6c757d; flex: 1;">Отмена</button>
-                <button onclick="confirmRename()" class="btn-success" style="flex: 1;">Сохранить</button>
+            <div class="modal-actions dual-buttons">
+                <button onclick="closeRenameModal()" class="btn-secondary">Отмена</button>
+                <button onclick="confirmRename()" class="btn-success">Сохранить</button>
             </div>
         </div>
     </div>
 
-<script src="script.js"></script>
+    <div id="toast-container" class="toast-container"></div>
 
-    <div id="toast-container"></div>
+    <script src="script.js"></script>
 </body>
 </html>

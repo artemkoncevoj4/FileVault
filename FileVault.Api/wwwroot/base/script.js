@@ -37,15 +37,23 @@
 
         if (res.ok) {
             const data = await res.json();
-            
-            
-            // Сохраняем только данные профиля (они нужны для UI)
             localStorage.setItem('vault_user', JSON.stringify(data.user));
             
             showToast("Вход выполнен!");
+            
+            // 1. Переключаем экраны
             checkAuth(); 
+            
+            // 2. СРАЗУ грузим файлы (для всех)
+            loadFiles(); 
+            
+            // 3. Если зашел админ (level 5+), принудительно грузим список юзеров
+            if (data.user.accessLevel >= 5) {
+                setTimeout(() => loadUsers(), 100); // Небольшая задержка, чтобы DOM успел обновиться
+            }
         } else {
-            showToast("Ошибка входа", "error");
+        const error = await res.text();
+        showToast("Ошибка входа: " + error, 'error');
         }
     }
 
@@ -407,23 +415,26 @@
     }
     function showToast(message, type = 'success') {
         const container = document.getElementById('toast-container');
+        if (!container) return;
+
         const toast = document.createElement('div');
+        // Используем классы для стилей
         toast.className = `toast toast-${type}`;
         toast.innerText = message;
         
         container.appendChild(toast);
         
-        // Плавное появление
         setTimeout(() => toast.classList.add('show'), 10);
         
-        // Удаление через 3 секунды
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 500);
         }, 3000);
     }
     // Запускаем проверку при каждой загрузке страницы
-    document.addEventListener('DOMContentLoaded', checkAuth);
+  document.addEventListener('DOMContentLoaded', () => {
+    checkAuth();
+});
 
 
     function showTerms() {

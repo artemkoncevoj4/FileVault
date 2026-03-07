@@ -1,37 +1,59 @@
+/* --- БАЗОВЫЕ НАСТРОЙКИ --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: #f8f9fa;
+    background: #f4f6f9;
     color: #333;
-    padding: 0;
-    margin: 0;
+    padding-top: 80px; /* Отступ под зафиксированную шапку */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
+/* Железобетонное скрытие элементов */
+.hidden {
+    display: none !important;
+}
+
+/* --- СЕТКА И КАРКАС --- */
 .container {
+    width: 100%;
     max-width: 850px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 0 20px;
+    flex: 1; /* Чтобы футер всегда был внизу, если контента мало */
 }
 
-/* Шапка */
+/* --- ШАПКА --- */
 .main-header {
-    background: white;
-    padding: 10px 0;
+    background: #ffffff;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     position: fixed;
     top: 0;
+    left: 0;
     width: 100%;
+    height: 60px;
     z-index: 1000;
+    display: flex;
+    align-items: center;
 }
 
 .header-content {
+    width: 100%;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 0 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
 }
 
 .main-header h1 {
-    margin: 0;
     font-size: 1.5rem;
     color: #007bff;
 }
@@ -42,151 +64,219 @@ body {
     font-weight: 500;
 }
 
-/* Панели */
+/* --- ПАНЕЛИ --- */
 .panel {
-    background: white;
-    padding: 25px;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    margin-bottom: 25px;
+    border: 1px solid #eaeaea;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
-    border: 1px solid #f0f0f0;
 }
 
 .auth-card {
     max-width: 400px;
-    margin: 0 auto 20px auto;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .admin-card {
-    border: 1px solid #ffeeba;
+    border: 2px solid #ffc107;
 }
 
-/* Элементы управления */
-input {
+/* --- ЭЛЕМЕНТЫ УПРАВЛЕНИЯ --- */
+input[type="text"],
+input[type="password"],
+input[type="file"] {
     width: 100%;
     padding: 12px 15px;
-    margin: 8px 0;
-    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 14px;
-    transition: border-color 0.2s;
+    transition: 0.2s;
 }
 
-input:focus {
+input[type="text"]:focus,
+input[type="password"]:focus {
     outline: none;
     border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
 }
+
+button {
+    background: #007bff;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+button:hover { background: #0056b3; transform: translateY(-1px); }
+.btn-success { background: #28a745; }
+.btn-success:hover { background: #218838; }
+.btn-danger { background: #dc3545; }
+.btn-danger:hover { background: #c82333; }
+.btn-secondary { background: #6c757d; }
+.btn-secondary:hover { background: #5a6268; }
 
 .auth-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+}
+
+/* --- ТАБЛИЦЫ И ФАЙЛЫ --- */
+.table-responsive { overflow-x: auto; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
     margin-top: 10px;
 }
 
-button {
-    font-weight: 600;
+th, td {
     padding: 12px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
 }
 
-button:hover {
-    filter: brightness(0.9);
-    transform: translateY(-1px);
-}
-
-.btn-danger { background: #ff4757; color: white; }
-.btn-success { background: #2ed573; color: white; }
-
-/* Файлы */
 .file-item {
-    background: #fff;
-    border: 1px solid #f1f1f1;
-    padding: 15px;
+    background: #fdfdfd;
+    border: 1px solid #eee;
+    padding: 12px 15px;
     margin-bottom: 10px;
-    border-radius: 10px;
+    border-radius: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background 0.2s;
 }
 
-.file-item:hover {
-    background: #fcfcfc;
+/* --- ЗОНА ЗАГРУЗКИ --- */
+.upload-zone {
+    background: #f8fbff;
+    border: 2px dashed #b8daff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 20px;
 }
 
-/* Модальные окна */
-.modal {
-    position: fixed; /* Фиксируем на весь экран */
+.success-text { color: #28a745; margin-bottom: 15px; font-weight: 500; }
+.upload-btn { width: 100%; margin-top: 10px; }
+.divider { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+.text-center { text-align: center; display: block; margin-top: 5px; }
+
+.progress-wrapper {
+    margin-top: 15px;
+    background: #e9ecef;
+    border-radius: 10px;
+    height: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background: #28a745;
+    transition: width 0.3s ease;
+}
+
+/* --- ФУТЕР --- */
+.main-footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+    border-top: 1px solid #ddd;
+    color: #777;
+    font-size: 13px;
+}
+
+.footer-links { margin-top: 10px; }
+.footer-links a { color: #007bff; text-decoration: none; margin: 0 5px; }
+
+/* =========================================
+   МОДАЛЬНЫЕ ОКНА (ВСПЛЫВАЮТ ПО ЦЕНТРУ)
+   ========================================= */
+.modal-overlay {
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6); /* Полупрозрачный темный фон */
-    display: flex;
-    align-items: center;    /* Центрируем по вертикали */
-    justify-content: center; /* Центрируем по горизонтали */
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5); /* Темный фон */
+    backdrop-filter: blur(4px);     /* Размытие задника */
     z-index: 5000;
-    backdrop-filter: blur(4px); /* Размытие заднего фона */
+    
+    /* Флексбокс для центрирования карточки внутри */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.modal-content {
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
+.modal-card {
+    background: #ffffff;
     width: 90%;
     max-width: 500px;
-    max-height: 80vh;
-    overflow-y: auto; /* Если текста много, будет скролл внутри окна */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
 }
 
-.hidden { display: none; }
+.modal-title { color: #007bff; margin-bottom: 15px; text-align: center; }
+.modal-subtitle { color: #666; font-size: 14px; margin-bottom: 20px; word-break: break-all; }
+.modal-text { font-size: 14px; line-height: 1.6; color: #444; white-space: pre-wrap; }
 
-/* Футер */
-.main-footer {
-    margin: 40px 0 20px 0;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-    text-align: center;
-    color: #999;
-}
+.modal-actions { margin-top: 25px; display: flex; justify-content: center; }
+.modal-actions button { min-width: 150px; }
+.dual-buttons { gap: 15px; }
+.dual-buttons button { flex: 1; }
 
-.footer-links a {
-    color: #007bff;
-    text-decoration: none;
-    font-size: 0.9em;
-}
-
-/* Уведомления */
+/* =========================================
+   УВЕДОМЛЕНИЯ (ТОСТЫ В ПРАВОМ ВЕРХНЕМ УГЛУ)
+   ========================================= */
 #toast-container {
-    position: fixed; /* Окно будет "плавать" над сайтом */
-    top: 20px;       /* Расстояние от верхнего края */
-    right: 20px;     /* Расстояние от правого края */
-    z-index: 9999;   /* Самый высокий слой, чтобы быть над всем */
+    position: fixed !important;
+    top: 80px !important;
+    right: 20px !important;
+    left: auto !important;
+    width: auto !important;
+    z-index: 99999;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 10px;
-    pointer-events: none; /* Чтобы не мешало кликать под ним */
+    pointer-events: none;
 }
 
+/* Сама плашка: СТРОГО fit-content, чтобы не на весь экран */
 .toast {
     pointer-events: auto;
-    width: fit-content;    
-    min-width: 200px;
-    background-color: #333;
+    width: fit-content !important; 
+    min-width: 250px;
+    max-width: 350px;
+    background: #333;
     color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    /* Анимация появления справа */
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    font-size: 14px;
     opacity: 0;
     transform: translateX(100px);
-    transition: all 0.4s ease;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .toast.show {
@@ -194,17 +284,5 @@ button:hover {
     transform: translateX(0);
 }
 
-.toast-success { 
-    background-color: #28a745; 
-    border-left: 5px solid #1e7e34;
-}
-
-.toast-error { 
-    background-color: #dc3545; 
-    border-left: 5px solid #bd2130;
-}
-
-@keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
+.toast-success { background: #28a745 !important; }
+.toast-error { background: #dc3545 !important; }
