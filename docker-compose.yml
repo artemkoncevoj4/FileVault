@@ -6,9 +6,11 @@ services:
       - "8080" # Внутренний порт для Caddy
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - JWT_KEY=VashSuperSekretniyKlyuchDlyaJWT1234567890
-      - ADMIN_USERNAME=
-      - ADMIN_PASSWORD=
+      - JWT_KEY=${JWT_KEY}
+      - ADMIN_USERNAME=${ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
     volumes:
       - ./Storage:/app/Storage
       - ./database.db:/app/database.db
@@ -18,8 +20,8 @@ services:
     image: caddy:latest
     container_name: caddy_proxy
     ports:
+      - "8443:8443"
       - "80:80"
-      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data

@@ -162,6 +162,13 @@ th, td {
     justify-content: space-between;
     align-items: center;
 }
+#fileInput {
+    cursor: pointer;
+    min-height: 50px; /* Чтобы пальцем было легче попасть */
+    opacity: 1;
+    position: relative;
+    z-index: 10;
+}
 
 /* --- ЗОНА ЗАГРУЗКИ --- */
 .upload-zone {
