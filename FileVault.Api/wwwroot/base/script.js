@@ -150,59 +150,58 @@ document.getElementById('fileInput').addEventListener('change', function() {
         }
     }
     function uploadFile() {
-    const fileInput = document.getElementById('fileInput');
-    const xhr = new XMLHttpRequest();
+        const fileInput = document.getElementById('fileInput');
+        const xhr = new XMLHttpRequest();
 
-    if (!fileInput.files[0]) return showToast("Выберите файл", "error");
+        if (!fileInput.files[0]) return showToast("Выберите файл", "error");
 
-    const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
 
-    xhr.withCredentials = true; 
+        xhr.withCredentials = true; 
 
-    // Элементы прогресс-бара
-    const container = document.getElementById('progress-container');
-    const bar = document.getElementById('progress-bar');
-    const text = document.getElementById('progress-text');
+        // Элементы прогресс-бара
+        const container = document.getElementById('progress-container');
+        const bar = document.getElementById('progress-bar');
+        const text = document.getElementById('progress-text');
 
-    container.classList.remove('hidden');
-    text.classList.remove('hidden');
+        container.classList.remove('hidden');
+        text.classList.remove('hidden');
 
-    // 1. Отслеживаем прогресс
-    xhr.upload.onprogress = function(event) {
-        if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            bar.style.width = percent + '%';
-            text.innerText = `Загрузка: ${percent}%`;
-        }
-    };
+        // 1. Отслеживаем прогресс
+        xhr.upload.onprogress = function(event) {
+            if (event.lengthComputable) {
+                const percent = Math.round((event.loaded / event.total) * 100);
+                bar.style.width = percent + '%';
+                text.innerText = `Загрузка: ${percent}%`;
+            }
+        };
 
-    // 2. Обработка завершения
-    xhr.onload = async function() {
-        container.classList.add('hidden');
-        text.classList.add('hidden');
-        bar.style.width = '0%';
+        // 2. Обработка завершения
+        xhr.onload = async function() {
+            container.classList.add('hidden');
+            text.classList.add('hidden');
+            bar.style.width = '0%';
 
-        if (xhr.status >= 200 && xhr.status < 300) {
-            showToast("Файл успешно загружен");
-            fileInput.value = ''; // Сброс поля
-            await loadFiles();
-        } else {
-            showToast("Ошибка загрузки: " + xhr.responseText, "error");
-        }
-    };
+            if (xhr.status >= 200 && xhr.status < 300) {
+                showToast("Файл успешно загружен");
+                fileInput.value = ''; // Сброс поля
+                await loadFiles();
+            } else {
+                showToast("Ошибка загрузки: " + xhr.responseText, "error");
+            }
+        };
 
-    // 3. Ошибка сети
-    xhr.onerror = function() {
-        showToast("Критическая ошибка сети", "error");
-        container.classList.add('hidden');
-    };
+        // 3. Ошибка сети
+        xhr.onerror = function() {
+            showToast("Критическая ошибка сети", "error");
+            container.classList.add('hidden');
+        };
 
-    xhr.open('POST', '/api/files/upload');
-    xhr.send(formData);
-
-}
+        xhr.open('POST', '/api/files/upload');
+        xhr.send(formData);
+    }
     // При загрузке страницы
     window.onload = async () => {
         const userJson = localStorage.getItem('vault_user');

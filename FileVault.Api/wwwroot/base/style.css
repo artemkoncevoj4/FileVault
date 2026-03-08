@@ -81,10 +81,23 @@ body {
     margin-bottom: 20px;
 }
 
-.auth-card {
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
+.auth-card input[type="text"], 
+.auth-card input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border-color 0.2s;
+    /* Убираем абсолютное позиционирование, которое могло прилететь от прошлых правок */
+    position: static; 
+    display: block;
+}
+
+.auth-card input:focus {
+    border-color: #007bff;
+    outline: none;
 }
 
 .admin-card {
@@ -98,7 +111,61 @@ input[type="file"] {
     /* padding: 12px 15px;  <-- Это часто мешает на мобилках */
     background: white;
 }
+/* --- ЗОНА ВЫБОРА ФАЙЛОВ --- */
+.mobile-input-container {
+    position: relative;
+    margin: 20px 0 10px 0;
+    text-align: center;
+}
 
+/* Настоящий системный инпут: огромный, невидимый, лежит поверх всего */
+#fileInput {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.01; /* 0.01 спасает от бага мобильного Firefox, который игнорирует прозрачные элементы */
+    cursor: pointer;
+    z-index: 10;
+    display: block !important;
+}
+
+/* Красивая подложка, которую видит пользователь */
+.file-label {
+    position: relative;
+    z-index: 1;
+    display: block;
+    padding: 20px;
+    border: 2px dashed #007bff;
+    border-radius: 12px;
+    background: rgba(0, 123, 255, 0.05);
+    text-align: center;
+    width: 100%;
+    pointer-events: none; /* Все клики сквозняком пролетают в #fileInput */
+    transition: all 0.2s ease;
+}
+
+/* МАГИЯ: Анимация нажатия! Когда нажимаем на прозрачный input, сжимается label под ним */
+#fileInput:active + .file-label {
+    background-color: rgba(0, 123, 255, 0.15);
+    transform: scale(0.98);
+}
+
+.file-text {
+    font-weight: 600;
+    color: #007bff;
+}
+
+.file-name-hint {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+/* --- ФОКУС И ПЕРЕХОДЫ --- */
 input[type="text"]:focus,
 input[type="password"]:focus {
     outline: none;
@@ -147,23 +214,6 @@ th, td {
     border-bottom: 1px solid #f0f0f0;
 }
 
-.file-item {
-    background: #fdfdfd;
-    border: 1px solid #eee;
-    padding: 12px 15px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-#fileInput {
-    cursor: pointer;
-    min-height: 50px; /* Чтобы пальцем было легче попасть */
-    opacity: 1;
-    position: relative;
-    z-index: 10;
-}
 
 /* --- ЗОНА ЗАГРУЗКИ --- */
 .upload-zone {
@@ -207,50 +257,9 @@ th, td {
 
 .footer-links { margin-top: 10px; }
 .footer-links a { color: #007bff; text-decoration: none; margin: 0 5px; }
-.mobile-input-container {
-    margin: 20px 0;
-    text-align: center;
-}
 
-.file-label {
-    display: inline-block;
-    font-size: 18px; /* Сделали крупнее */
-    color: #007bff;
-    text-decoration: underline; /* Подчеркивание для понятности */
-    padding: 15px 20px;
-    border: 2px dashed #007bff;
-    border-radius: 8px;
-    background-color: rgba(0, 123, 255, 0.05);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
 
-.file-label:active {
-    background-color: rgba(0, 123, 255, 0.15);
-    transform: scale(0.98);
-}
 
-.file-text {
-    font-weight: 600;
-}
-
-.file-name-hint {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #666;
-    font-style: italic;
-}
-
-.hidden-input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-}
 /* =========================================
    МОДАЛЬНЫЕ ОКНА (ВСПЛЫВАЮТ ПО ЦЕНТРУ)
    ========================================= */
@@ -258,27 +267,25 @@ th, td {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5); /* Темный фон */
-    backdrop-filter: blur(4px);     /* Размытие задника */
-    z-index: 5000;
-    
-    /* Флексбокс для центрирования карточки внутри */
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
     display: flex;
     justify-content: center;
     align-items: center;
+    /* Устанавливаем максимальный приоритет, чтобы модалка была над кнопкой загрузки */
+    z-index: 99999 !important; 
 }
 
 .modal-card {
-    background: #ffffff;
-    width: 90%;
-    max-width: 500px;
-    max-height: 85vh;
-    overflow-y: auto;
+    background: white;
     padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    max-width: 500px;
+    width: 90%;
+    /* Кнопка внутри модалки должна быть кликабельной */
+    position: relative;
+    z-index: 100001;
 }
 
 .modal-title { color: #007bff; margin-bottom: 15px; text-align: center; }
