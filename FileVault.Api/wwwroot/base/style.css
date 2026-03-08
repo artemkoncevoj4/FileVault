@@ -111,7 +111,61 @@ input[type="file"] {
     /* padding: 12px 15px;  <-- Это часто мешает на мобилках */
     background: white;
 }
+/* --- ЗОНА ВЫБОРА ФАЙЛОВ --- */
+.mobile-input-container {
+    position: relative;
+    margin: 20px 0 10px 0;
+    text-align: center;
+}
 
+/* Настоящий системный инпут: огромный, невидимый, лежит поверх всего */
+#fileInput {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.01; /* 0.01 спасает от бага мобильного Firefox, который игнорирует прозрачные элементы */
+    cursor: pointer;
+    z-index: 10;
+    display: block !important;
+}
+
+/* Красивая подложка, которую видит пользователь */
+.file-label {
+    position: relative;
+    z-index: 1;
+    display: block;
+    padding: 20px;
+    border: 2px dashed #007bff;
+    border-radius: 12px;
+    background: rgba(0, 123, 255, 0.05);
+    text-align: center;
+    width: 100%;
+    pointer-events: none; /* Все клики сквозняком пролетают в #fileInput */
+    transition: all 0.2s ease;
+}
+
+/* МАГИЯ: Анимация нажатия! Когда нажимаем на прозрачный input, сжимается label под ним */
+#fileInput:active + .file-label {
+    background-color: rgba(0, 123, 255, 0.15);
+    transform: scale(0.98);
+}
+
+.file-text {
+    font-weight: 600;
+    color: #007bff;
+}
+
+.file-name-hint {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+/* --- ФОКУС И ПЕРЕХОДЫ --- */
 input[type="text"]:focus,
 input[type="password"]:focus {
     outline: none;
@@ -160,23 +214,6 @@ th, td {
     border-bottom: 1px solid #f0f0f0;
 }
 
-.file-item {
-    background: #fdfdfd;
-    border: 1px solid #eee;
-    padding: 12px 15px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-#fileInput {
-    cursor: pointer;
-    min-height: 50px; /* Чтобы пальцем было легче попасть */
-    opacity: 1;
-    position: relative;
-    z-index: 10;
-}
 
 /* --- ЗОНА ЗАГРУЗКИ --- */
 .upload-zone {
@@ -220,61 +257,9 @@ th, td {
 
 .footer-links { margin-top: 10px; }
 .footer-links a { color: #007bff; text-decoration: none; margin: 0 5px; }
-.mobile-input-container {
-    margin: 20px 0;
-    text-align: center;
-}
 
-.file-label {
-    display: inline-block;
-    font-size: 16px;
-    color: #007bff;
-    text-decoration: underline;
-    padding: 15px;
-    border: 2px dashed #007bff;
-    border-radius: 8px;
-    background: rgba(0, 123, 255, 0.05);
-    cursor: pointer;
-    width: 100%;
-    text-align: center;
-}
 
-.file-label:active {
-    background-color: rgba(0, 123, 255, 0.15);
-    transform: scale(0.98);
-}
 
-.file-text {
-    font-weight: 600;
-}
-
-.file-name-hint {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #666;
-    font-style: italic;
-}
-#fileInput {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0,0,0,0);
-    border: 0;
-}
-
-.hidden-input {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    border: 0;
-}
 /* =========================================
    МОДАЛЬНЫЕ ОКНА (ВСПЛЫВАЮТ ПО ЦЕНТРУ)
    ========================================= */
