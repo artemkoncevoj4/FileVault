@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FileVault.Api.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20260321195403_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260321202547_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -1,4 +1,4 @@
-    function showTerms() {
+export function showTerms() {
         const terms = `
     TERMS OF SERVICE (International Private Resource)
 
@@ -11,10 +11,9 @@
         document.getElementById('legal-title').innerText = "Legal Information";
         document.getElementById('legal-content').innerText = terms;
         document.getElementById('legal-modal').classList.remove('hidden');
-    }
+}
 
-
-    function showPrivacy() {
+export function showPrivacy() {
         const privacyText = `
     PRIVACY POLICY
 
@@ -27,4 +26,4 @@
         document.getElementById('legal-title').innerText = "Privacy Policy";
         document.getElementById('legal-content').innerText = privacyText;
         document.getElementById('legal-modal').classList.remove('hidden');
-    }
+}

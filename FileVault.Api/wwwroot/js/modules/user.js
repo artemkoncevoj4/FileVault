@@ -1,3 +1,4 @@
+import {showToast} from '../core/ui.js';
 export  async function login() {
         const login = document.getElementById('loginInput').value;
         const password = document.getElementById('passwordInput').value;
@@ -28,7 +29,7 @@ export  async function login() {
         const error = await res.text();
         showToast("Ошибка входа: " + error, 'error');
         }
-    }
+}
  export async function logout() {
         try {
             // 1. Пытаемся удалить куку на сервере
@@ -46,8 +47,7 @@ export  async function login() {
 
         // 3. Полностью перезагружаем страницу, чтобы сбросить состояние интерфейса
         window.location.reload();
-    }
-
+}
  export   async function register() {
         const login = document.getElementById('loginInput').value;
         const password = document.getElementById('passwordInput').value;
@@ -64,4 +64,4 @@ export  async function login() {
             const error = await response.text();
             showToast("Ошибка регистрации: " + error, 'error');
         }
-    }
+}

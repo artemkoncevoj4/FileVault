@@ -1,6 +1,6 @@
-import { apiRequest } from "./api";
-import {showToast} from "./ui.js";
-    export function uploadFile() {
+import { apiRequest } from "../core/api.js";
+import {showToast} from '../core/ui.js';
+export function uploadFile() {
         const fileInput = document.getElementById('fileInput');
         const xhr = new XMLHttpRequest();
 
@@ -52,9 +52,9 @@ import {showToast} from "./ui.js";
 
         xhr.open('POST', '/api/files/upload');
         xhr.send(formData);
-        }
-        // При загрузке страницы
-        window.onload = async () => {
+}
+
+window.onload = async () => {
         const userJson = localStorage.getItem('vault_user');
         if (!userJson) return;
 
@@ -80,8 +80,9 @@ import {showToast} from "./ui.js";
         }
         
         loadFiles();
-    };
-    export async function downloadFile(fileId) {
+};
+
+export async function downloadFile(fileId) {
         // Так как мы используем HttpOnly куки, нам не нужно вручную слать заголовок Authorization
         // Браузер сам прикрепит куку к запросу, если указано credentials: 'same-origin'
         
@@ -110,18 +111,19 @@ import {showToast} from "./ui.js";
         } else {
             showToast("Ошибка при скачивании", 'error');
         }
-    }
+}
 
-        export async function lockFile(fileName) {
-            const res = await apiRequest(`/api/files/lock/${fileName}`, 'PUT');
+export async function lockFile(fileId) {
+            const res = await apiRequest(`/api/files/lock/${fileId}`, 'PUT');
             if (res.ok) {
                 showToast("Файл закрыт для уровней ниже 4");
                 loadFiles();
             } else {
                 showToast("Ошибка при закрытии файла", 'error');
             }
-        }
-        export async function unlockFile(fileName) {
+}
+
+export async function unlockFile(fileId) {
             const res = await apiRequest(`/api/files/unlock/${fileId}`, 'PUT');
             if (res.ok) {
                 showToast("Файл теперь доступен всем");
@@ -129,9 +131,9 @@ import {showToast} from "./ui.js";
             } else {
                 showToast("Ошибка при открытии файла", 'error');
             }
-        }
-            // Функция удаления (исправленная)
-        export async function deleteFileOnServer(fileId) {
+}
+
+export async function deleteFileOnServer(fileId) {
             if (!confirm("Удалить файл навсегда?")) return;
 
             const res = await apiRequest(`/api/files/delete/${fileId}`, 'DELETE');
@@ -143,25 +145,22 @@ import {showToast} from "./ui.js";
                 const err = await res.text();
                 showToast("Ошибка: " + err, 'error');
             }
-        }
-let currentFileToRename = "";
+}
 
-        // 1. Показываем наше красивое окно
-        function renamePrompt(oldName) {
+let currentFileToRename = "";
+export function renamePrompt(oldName) {
             currentFileToRename = oldName;
             document.getElementById('renameOldNameDisplay').innerText = oldName;
             document.getElementById('renameInput').value = ""; // Очищаем поле ввода
             document.getElementById('rename-modal').classList.remove('hidden'); // Показываем окно
-        }
+}
 
-        // 2. Закрываем окно, если нажали "Отмена"
-        function closeRenameModal() {
+export function closeRenameModal() {
             document.getElementById('rename-modal').classList.add('hidden');
             currentFileToRename = "";
-        }
+}
 
-        // 3. Отправляем запрос на сервер, когда нажали "Сохранить"
-        async function confirmRename() {
+export async function confirmRename() {
             const newNameRaw = document.getElementById('renameInput').value.trim();
             const oldName = currentFileToRename;
 
@@ -190,4 +189,74 @@ let currentFileToRename = "";
                 const err = await res.text();
                 showToast("Ошибка сервера: " + err, 'error');
             }
+}
+document.addEventListener('DOMContentLoaded', () => {
+checkAuth();
+});
+
+export async function loadAdminData() {
+        const res = await apiRequest('/api/admin/users');
+        if (res.ok) {
+            const users = await res.json();
+            const tbody = document.getElementById('usersTable');
+            tbody.innerHTML = users.map(u => `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td>${u.login}</td>
+                        <td><input type="number" value="${u.accessLevel}" id="lvl-${u.id}" style="width:50px"></td>
+                        <td>
+                            <button onclick="changeLevel(${u.id})" class="btn-success">ОК</button>
+                            <button onclick="deleteUser(${u.id})" class="btn-danger" style="padding: 5px 10px;">Удалить</button>
+                        </td>
+                    </tr>
+            `).join('');
         }
+}
+
+export async function loadFiles() {
+                const list = document.getElementById('file-list');
+                const user = JSON.parse(localStorage.getItem('vault_user'));
+                const lvl = user.accessLevel;
+                const currentUserId = user.id;
+    
+                const res = await apiRequest('/api/files/list');
+                if (res.ok) {
+                    const list = document.getElementById('file-list');
+                    const user = JSON.parse(localStorage.getItem('vault-user'));
+                    const lvl = user.accessLevel;
+                    const currentUserId = user.id;
+    
+                    const res = await apiRequest('/api/files/list');
+                    if (res.ok) {
+                        const files = await res.json();
+    
+                        list.innerHTML = files.map(file => {
+                            const isOwner = file.ownerId == currentUserId;
+                            const isAdmin = lvl === 5;
+    
+                            return `
+                            <div class="file-item" style="${file.isLocked ? 'background: #fff3cd;' : ''}">
+                                <div>
+                                    <span>${file.isLocked ? '🔒' : '📄'} <b>${file.virtualName}</b></span>
+                                    <br><small style="color: gray;">Владелец: #${file.ownerId} ${isOwner ? '(Вы)' : ''}</small>
+                                </div>
+                                <div>
+                                    ${lvl >= 2 ? `<button onclick="safeAction('download', ${file.id})" class="btn-success">Скачать</button>` : ''}
+                                    
+                                    ${lvl >= 4 ? 
+                                        (file.isLocked ? 
+                                            `<button onclick="safeAction('unlock', ${file.id})" style="background: #007bff; margin-left: 5px;">Открыть</button>` : 
+                                            `<button onclick="safeAction('lock', ${file.id})" style="background: #6c757d; margin-left: 5px;">Закрыть</button>`) 
+                                        : ''}
+    
+                                    ${(lvl >= 3 && isOwner) || isAdmin ? 
+                                        `<button onclick="safeAction('rename', ${file.id}, '${file.virtualName}')" style="background: #17a2b8; margin-left: 5px;">✏️</button>` : ''}
+                                    
+                                    ${(lvl >= 3 && isOwner) || isAdmin ? 
+                                        `<button onclick="safeAction('delete', ${file.id})" class="btn-danger" style="margin-left: 5px;">Удалить</button>` : ''}
+                                </div>
+                            </div>`;
+                        }).join('');
+                    }
+                }
+}
