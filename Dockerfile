@@ -20,4 +20,4 @@ EXPOSE 8080
 RUN mkdir -p /app/Storage
 
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "FileVault.Api.dll"
+ENTRYPOINT ["dotnet", "FileVault.Api.dll"]

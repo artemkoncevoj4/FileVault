@@ -5,17 +5,16 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DotNetEnv;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.StaticFiles;
 
 Env.Load();
-
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions 
 { 
-    WebRootPath = "wwwroot/base/" 
+    WebRootPath = "wwwroot" 
 });
 builder.Configuration.AddEnvironmentVariables();
 
 var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");                
-
 if (string.IsNullOrEmpty(jwtKey))
 {
     throw new InvalidOperationException("JWT_KEY is not set in environment variables!");
@@ -43,12 +42,10 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Регистрация ApplicationContext и IPasswordHasher
 builder.Services.AddDbContext<ApplicationContext>(options => 
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddSingleton<IPasswordHasher, BCryptHasher>();
 
-// Регистрация глобального обработчика исключений
 builder.Services.AddExceptionHandler<FileVault.Api.Utils.GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
@@ -113,8 +110,15 @@ else
     app.UseHsts(); 
 }
 
+var provider = new FileExtensionContentTypeProvider();
+provider.Mappings[".js"] = "application/javascript";
+provider.Mappings[".css"] = "text/css";
+
 app.UseDefaultFiles(); 
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = provider
+});
 app.UseRouting();
 
 app.UseAuthentication();

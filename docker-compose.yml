@@ -3,14 +3,12 @@ services:
     build: .
     container_name: filevault_api
     expose:
-      - "8080" # Внутренний порт для Caddy
+      - "8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - JWT_KEY=${JWT_KEY}
-      - ADMIN_USERNAME=${ADMIN_USERNAME}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-      - JWT_ISSUER=${JWT_ISSUER}
-      - JWT_AUDIENCE=${JWT_AUDIENCE}
+      - JWT_KEY=VashSuperSekretniyKlyuchDlyaJWT1234567890
+      - ADMIN_USERNAME=
+      - ADMIN_PASSWORD=
     volumes:
       - ./Storage:/app/Storage
       - ./database.db:/app/database.db
