@@ -10,7 +10,7 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions 
 { 
-    WebRootPath = "wwwroot/base/" 
+    WebRootPath = "wwwroot/" 
 });
 builder.Configuration.AddEnvironmentVariables();
 

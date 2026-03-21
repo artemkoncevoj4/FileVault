@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net.NetworkInformation;
 namespace FileVault.Api.Database;
 
 public class User
@@ -11,6 +12,7 @@ public class User
     public string PasswordHash { get; set; } = default!;
     [Required, Range(1, 5)]
     public int AccessLevel { get; set; }
+
 }
 
 // Добавляем DTO, чтобы безопасно возвращать данные
