@@ -24,7 +24,7 @@ public class FilesController : ControllerBase
     }
 
     [HttpPut("lock/{id}")]
-public async Task<IActionResult> LockFile(string id)
+public async Task<IActionResult> LockFile(int id)
 {
     try 
         {
@@ -32,7 +32,7 @@ public async Task<IActionResult> LockFile(string id)
             if (userLevel < 4) return Forbid("Недостаточный уровень доступа");
 
             //Ищем файл в базе по уникальному ID
-            var fileRecord = await _db.Files.FindAsync();
+            var fileRecord = await _db.Files.FindAsync(id);
 
             //Если нет
             if(fileRecord == null) return NotFound("Файл не найден");
@@ -67,7 +67,7 @@ public async Task<IActionResult> UnlockFile(int id)
         if (userLevel < 4) return Forbid("Недостаточный уровень доступа");
 
         //Ищем файл в базе по уникальному ID
-        var fileRecord = await _db.Files.FindAsync();
+        var fileRecord = await _db.Files.FindAsync(id);
 
         //Если нет
         if(fileRecord == null) return NotFound("Файл не найден");
