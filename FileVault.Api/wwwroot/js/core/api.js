@@ -10,14 +10,14 @@ export async function apiRequest(url, method = 'GET', body = null) {
     try {
         const response = await fetch(url, options);
         if (response.status === 401) {
-            // Вместо прямого вызова logout просто кидаем событие или редиректим
+            // Instead of direct logout, clear storage and reload
             localStorage.removeItem('vault_user');
             window.location.reload(); 
             return { ok: false };
         }
         return response;
     } catch (e) {
-        showToast("Ошибка сети", "error");
+        showToast("Network error", "error");
         return { ok: false };
     }
 }

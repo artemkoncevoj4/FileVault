@@ -46,16 +46,15 @@ public class AdminController : ControllerBase
             return Forbid();
 
         var user = await _db.Users.FindAsync(id);
-        if (user == null) return NotFound("Пользователь не найден");
+        if (user == null) return NotFound("User not found");
 
         
         var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if (currentUserId == id.ToString())
-            return BadRequest("Вы не можете удалить свою собственную учетную запись");
+        if (currentUserId == id.ToString()) return BadRequest("You cannot delete your own account");
 
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();
-        return Ok();
+        return Ok("User deleted");
     }
     private bool IsAdmin() => 
         User.FindFirst("AccessLevel")?.Value == "5";

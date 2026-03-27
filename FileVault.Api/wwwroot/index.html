@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FileVault - Облако</title>
+    <title>FileVault - Cloud Storage</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -18,41 +18,41 @@
     <main class="container">
         
         <div id="auth-panel" class="panel auth-card">
-            <h2>Вход в систему</h2>
-            <input type="text" id="loginInput" placeholder="Ваш логин">
-            <input type="password" id="passwordInput" placeholder="Пароль">
+            <h2>Sign In</h2>
+            <input type="text" id="loginInput" placeholder="Username">
+            <input type="password" id="passwordInput" placeholder="Password">
             <div class="auth-buttons">
-                <button onclick="login()">Войти</button>
-                <button onclick="register()" class="btn-success">Создать аккаунт</button>
+                <button onclick="login()">Login</button>
+                <button onclick="register()" class="btn-success">Create Account</button>
             </div>
         </div>
 
         <div id="profile-panel" class="panel hidden">
             <div class="panel-header">
-                <h2 id="welcomeText">Привет!</h2>
-                <button onclick="logout()" class="btn-danger">Выйти</button>
+                <h2 id="welcomeText">Welcome!</h2>
+                <button onclick="logout()" class="btn-danger">Logout</button>
             </div>
-            <p>Ваш уровень доступа: <b id="userLevel"></b></p>
+            <p>Access Level: <b id="userLevel"></b></p>
         </div>
 
         <div id="files-panel" class="panel hidden">
-            <h2>📂 Мои файлы</h2>
+            <h2>📂 My Files</h2>
             
             <div id="upload-section" class="upload-zone hidden">
-                <p class="success-text">✓ Вам доступна загрузка файлов (уровень 3+)</p>
+                <p class="success-text">✓ File upload available (Level 3+)</p>
                 
                 <div class="mobile-input-container">
                     <input type="file" id="fileInput" name="files" accept="*/*" multiple>
                     
                     <label class="file-label">
                         <span class="file-icon">📁</span> 
-                        <span class="file-text">Нажмите здесь, чтобы выбрать файл</span>
+                        <span class="file-text">Click here to select files</span>
                     </label>
                 </div>
 
-                <div id="fileNameDisplay" class="file-name-hint">Файл не выбран</div>
+                <div id="fileNameDisplay" class="file-name-hint">No file selected</div>
                 
-                <button onclick="uploadFile()" class="upload-btn">Загрузить на сервер</button>
+                <button onclick="uploadFile()" class="upload-btn">Upload to Server</button>
                 
                 <div id="progress-container" class="progress-wrapper hidden">
                     <div id="progress-bar" class="progress-bar"></div>
@@ -61,14 +61,14 @@
             </div>
             
             <hr class="divider">
-            <div id="file-list"><p>Загрузка списка файлов...</p></div>
+            <div id="file-list"><p>Loading file list...</p></div>
         </div>
 
         <div id="admin-panel" class="panel admin-card hidden">
-            <h2>👑 Админ-центр</h2>
+            <h2>👑 Admin Center</h2>
             <div class="table-responsive">
                 <table>
-                    <thead><tr><th>ID</th><th>Логин</th><th>Уровень</th><th>Действие</th></tr></thead>
+                    <thead><tr><th>ID</th><th>Username</th><th>Level</th><th>Action</th></tr></thead>
                     <tbody id="usersTable"></tbody>
                 </table>
             </div>
@@ -96,12 +96,12 @@
 
     <div id="rename-modal" class="modal-overlay hidden">
         <div class="modal-card">
-            <h3 class="modal-title">✏️ Переименовать</h3>
-            <p class="modal-subtitle">Старое имя: <b id="renameOldNameDisplay"></b></p>
-            <input type="text" id="renameInput" placeholder="Новое имя">
+            <h3 class="modal-title">✏️ Rename</h3>
+            <p class="modal-subtitle">Current name: <b id="renameOldNameDisplay"></b></p>
+            <input type="text" id="renameInput" placeholder="New name">
             <div class="modal-actions dual-buttons">
-                <button onclick="closeRenameModal()" class="btn-secondary">Отмена</button>
-                <button onclick="confirmRename()" class="btn-success">Сохранить</button>
+                <button onclick="closeRenameModal()" class="btn-secondary">Cancel</button>
+                <button onclick="confirmRename()" class="btn-success">Save Changes</button>
             </div>
         </div>
     </div>

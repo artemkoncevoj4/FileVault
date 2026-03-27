@@ -3,7 +3,7 @@ import { loadFiles, uploadFile, downloadFile, lockFile, unlockFile, deleteFileOn
 import { loadAdminData, changeLevel, deleteUser } from './modules/admin.js';
 import { showTerms, showPrivacy } from './core/special_ui.js';
 
-// Выносим всё в window, чтобы HTML (onclick) видел функции
+// Expose functions to the window object so HTML onclick events can access them
 window.login = login;
 window.logout = logout;
 window.register = register;
@@ -15,7 +15,7 @@ window.confirmRename = confirmRename;
 window.changeLevel = changeLevel;
 window.deleteUser = deleteUser;
 
-// Обработчик для кнопок в таблице
+// Global handler for file actions
 window.safeAction = (action, id, name) => {
     if (action === 'download') downloadFile(id);
     if (action === 'lock') lockFile(id);
@@ -24,7 +24,7 @@ window.safeAction = (action, id, name) => {
     if (action === 'rename') renamePrompt(id, name);
 };
 
-// Функция проверки авторизации (теперь она только здесь)
+// Authorization check and UI state management
 window.checkAuth = function() {
     const userData = localStorage.getItem('vault_user');
     if (userData) {
@@ -32,7 +32,7 @@ window.checkAuth = function() {
         document.getElementById('auth-panel').classList.add('hidden');
         document.getElementById('profile-panel').classList.remove('hidden');
         document.getElementById('files-panel').classList.remove('hidden');
-        document.getElementById('welcomeText').innerText = `Привет, ${user.login}!`;
+        document.getElementById('welcomeText').innerText = `Hello, ${user.login}!`;
         document.getElementById('userLevel').innerText = user.accessLevel;
 
         if (user.accessLevel >= 5) {
@@ -53,14 +53,17 @@ window.checkAuth = function() {
 document.addEventListener('DOMContentLoaded', () => {
     window.checkAuth();
     
-    // Слушатель для красивого отображения имени файла при выборе
+    // Listener to display the selected file name in a clean way
     const fileInput = document.getElementById('fileInput');
     if (fileInput) {
         fileInput.addEventListener('change', () => {
             const display = document.getElementById('fileNameDisplay');
             if (fileInput.files[0]) {
-                display.innerText = "Выбран файл: " + fileInput.files[0].name;
+                display.innerText = "Selected file: " + fileInput.files[0].name;
                 display.style.color = "#28a745";
+            } else {
+                display.innerText = "No file selected";
+                display.style.color = "#666";
             }
         });
     }

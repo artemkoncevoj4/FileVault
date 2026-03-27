@@ -1,22 +1,23 @@
 import { apiRequest } from "../core/api.js";
 import { showToast } from "../core/ui.js";
-export async function deleteUser(userId) {
-        console.log("Попытка удаления пользователя ID:", userId);
-        // if (!confirm(`Удалить пользователя ${userId}?`)) return;
 
-        const res = await apiRequest(`/api/admin/users/${userId}`, 'DELETE');
-        if (res.ok) {
-            showToast("Пользователь удален");
-            loadAdminData();
-        } else {
-            showToast("Не удалось удалить пользователя", 'error');
-        }
+export async function deleteUser(userId) {
+    console.log("Attempting to delete user ID:", userId);
+    // if (!confirm(`Delete user ${userId}?`)) return;
+
+    const res = await apiRequest(`/api/admin/users/${userId}`, 'DELETE');
+    if (res.ok) {
+        showToast("User deleted");
+        loadAdminData();
+    } else {
+        showToast("Failed to delete user", 'error');
+    }
 }
     
 export async function changeLevel(userId) {
-        const newLvl = document.getElementById(`lvl-${userId}`).value;
-        const res = await apiRequest(`/api/admin/users/${userId}/access`, 'PUT', parseInt(newLvl));
-        if (res.ok) showToast("Уровень изменен!");
+    const newLvl = document.getElementById(`lvl-${userId}`).value;
+    const res = await apiRequest(`/api/admin/users/${userId}/access`, 'PUT', parseInt(newLvl));
+    if (res.ok) showToast("Access level updated!");
 }
 
 export async function loadAdminData() {
@@ -30,12 +31,12 @@ export async function loadAdminData() {
                 <td>${u.login}</td>
                 <td><input type="number" value="${u.accessLevel}" id="lvl-${u.id}" style="width:50px"></td>
                 <td>
-                    <button onclick="changeLevel(${u.id})" class="btn-success">ОК</button>
-                    <button onclick="deleteUser(${u.id})" class="btn-danger" style="padding: 5px 10px;">Удалить</button>
+                    <button onclick="changeLevel(${u.id})" class="btn-success">OK</button>
+                    <button onclick="deleteUser(${u.id})" class="btn-danger" style="padding: 5px 10px;">Delete</button>
                 </td>
             </tr>
         `).join('');
     } else {
-        showToast("Не удалось загрузить список пользователей", 'error');
+        showToast("Failed to load user list", 'error');
     }
 }

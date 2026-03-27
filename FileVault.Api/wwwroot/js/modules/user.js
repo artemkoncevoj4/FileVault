@@ -16,21 +16,21 @@ export async function login() {
         const data = await res.json();
         localStorage.setItem('vault_user', JSON.stringify(data.user));
         
-        showToast("Вход выполнен!");
+        showToast("Login successful!");
         
-        // Вызываем глобальную функцию checkAuth (она определена в main.js)
+        // Call global checkAuth function defined in main.js
         if (window.checkAuth) window.checkAuth();
         
-        // Загружаем файлы
+        // Load files
         await loadFiles();
         
-        // Если админ, грузим список пользователей
+        // If admin, load user list
         if (data.user.accessLevel >= 5) {
             setTimeout(() => loadAdminData(), 100);
         }
     } else {
         const error = await res.text();
-        showToast("Ошибка входа: " + error, 'error');
+        showToast("Login failed: " + error, 'error');
     }
 }
 
@@ -41,7 +41,7 @@ export async function logout() {
             credentials: 'same-origin' 
         });
     } catch (e) {
-        console.error("Ошибка при запросе на логаут:", e);
+        console.error("Logout request failed:", e);
     }
 
     localStorage.removeItem('vault_user');
@@ -59,9 +59,9 @@ export async function register() {
     });
 
     if (response.ok) {
-        showToast("Регистрация успешна! Теперь войдите.");
+        showToast("Registration successful! You can now log in.");
     } else {
         const error = await response.text();
-        showToast("Ошибка регистрации: " + error, 'error');
+        showToast("Registration error: " + error, 'error');
     }
 }

@@ -1,11 +1,11 @@
-import { apiRequest } from "../core/api.js";
-import { showToast } from "../core/ui.js";
+import { apiRequest } from '../core/api.js';
+import { showToast } from '../core/ui.js';
 
 let currentFileToRename = { id: null, name: "" };
 
 export function uploadFile() {
     const fileInput = document.getElementById('fileInput');
-    if (!fileInput.files[0]) return showToast("Выберите файл", "error");
+    if (!fileInput.files[0]) return showToast("Please select a file", "error");
 
     const file = fileInput.files[0];
     const formData = new FormData();
@@ -25,7 +25,7 @@ export function uploadFile() {
         if (event.lengthComputable) {
             const percent = Math.round((event.loaded / event.total) * 100);
             bar.style.width = percent + '%';
-            text.innerText = `Загрузка: ${percent}%`;
+            text.innerText = `Uploading: ${percent}%`;
         }
     };
 
@@ -35,16 +35,16 @@ export function uploadFile() {
         bar.style.width = '0%';
 
         if (xhr.status >= 200 && xhr.status < 300) {
-            showToast("Файл успешно загружен");
+            showToast("File uploaded successfully");
             fileInput.value = '';
             await loadFiles();
         } else {
-            showToast("Ошибка загрузки: " + xhr.responseText, "error");
+            showToast("Upload error: " + xhr.responseText, "error");
         }
     };
 
     xhr.onerror = () => {
-        showToast("Критическая ошибка сети", "error");
+        showToast("Critical network error", "error");
         container.classList.add('hidden');
     };
 
@@ -72,24 +72,24 @@ export async function loadFiles() {
                 <div class="file-item" style="${file.isLocked ? 'background: #fff3cd;' : ''}">
                     <div>
                         <span>${file.isLocked ? '🔒' : '📄'} <b>${file.virtualName}</b></span>
-                        <br><small style="color: gray;">Владелец: #${file.ownerId} ${isOwner ? '(Вы)' : ''}</small>
+                        <br><small style="color: gray;">Owner: #${file.ownerId} ${isOwner ? '(You)' : ''}</small>
                     </div>
                     <div>
-                        ${lvl >= 2 ? `<button onclick="safeAction('download', ${file.id})" class="btn-success">Скачать</button>` : ''}
+                        ${lvl >= 2 ? `<button onclick="safeAction('download', ${file.id})" class="btn-success">Download</button>` : ''}
                         ${lvl >= 4 ? (file.isLocked ? 
-                            `<button onclick="safeAction('unlock', ${file.id})" style="background: #007bff; margin-left: 5px;">Открыть</button>` : 
-                            `<button onclick="safeAction('lock', ${file.id})" style="background: #6c757d; margin-left: 5px;">Закрыть</button>`) : ''}
+                            `<button onclick="safeAction('unlock', ${file.id})" style="background: #007bff; margin-left: 5px;">Unlock</button>` : 
+                            `<button onclick="safeAction('lock', ${file.id})" style="background: #6c757d; margin-left: 5px;">Lock</button>`) : ''}
                         ${(lvl >= 3 && isOwner) || isAdmin ? 
                             `<button onclick="safeAction('rename', ${file.id}, '${file.virtualName}')" style="background: #17a2b8; margin-left: 5px;">✏️</button>` : ''}
                         ${(lvl >= 3 && isOwner) || isAdmin ? 
-                            `<button onclick="safeAction('delete', ${file.id})" class="btn-danger" style="margin-left: 5px;">Удалить</button>` : ''}
+                            `<button onclick="safeAction('delete', ${file.id})" class="btn-danger" style="margin-left: 5px;">Delete</button>` : ''}
                     </div>
                 </div>`;
         }).join('');
     } 
     else
     {
-        showToast("Ошибка загрузки списка файлов", 'error');
+        showToast("Error loading file list", 'error');
     }
 }
 
@@ -112,39 +112,39 @@ export async function downloadFile(fileId) {
         a.remove();
         window.URL.revokeObjectURL(url);
     } else {
-        showToast("Ошибка при скачивании", 'error');
+        showToast("Download error", 'error');
     }
 }
 
 export async function lockFile(fileId) {
     const res = await apiRequest(`/api/files/lock/${fileId}`, 'PUT');
     if (res.ok) {
-        showToast("Файл закрыт");
+        showToast("File locked");
         loadFiles();
     } else {
-        showToast("Ошибка при закрытии", 'error');
+        showToast("Error locking file", 'error');
     }
 }
 
 export async function unlockFile(fileId) {
     const res = await apiRequest(`/api/files/unlock/${fileId}`, 'PUT');
     if (res.ok) {
-        showToast("Файл открыт");
+        showToast("File unlocked");
         loadFiles();
     } else {
-        showToast("Ошибка при открытии", 'error');
+        showToast("Error unlocking file", 'error');
     }
 }
 
 export async function deleteFileOnServer(fileId) {
-    if (!confirm("Удалить файл навсегда?")) return;
+    if (!confirm("Permanently delete this file?")) return;
     const res = await apiRequest(`/api/files/delete/${fileId}`, 'DELETE');
     if (res.ok) {
-        showToast("Файл удален");
+        showToast("File deleted");
         loadFiles();
     } else {
         const err = await res.text();
-        showToast("Ошибка: " + err, 'error');
+        showToast("Error: " + err, 'error');
     }
 }
 
@@ -164,7 +164,7 @@ export async function confirmRename() {
     const newNameRaw = document.getElementById('renameInput').value.trim();
     const { id: fileId, name: oldName } = currentFileToRename;
 
-    if (!newNameRaw) return showToast("Имя пустое!", 'error');
+    if (!newNameRaw) return showToast("Name is empty!", 'error');
 
     const ext = oldName.includes('.') ? oldName.substring(oldName.lastIndexOf('.')) : '';
     let newName = newNameRaw.endsWith(ext) ? newNameRaw : newNameRaw + ext;
@@ -173,9 +173,9 @@ export async function confirmRename() {
     const res = await apiRequest('/api/files/rename', 'PUT', { id: fileId, NewName: newName });
 
     if (res.ok) {
-        showToast("Файл переименован!");
+        showToast("File renamed!");
         loadFiles();
     } else {
-        showToast("Ошибка сервера: " + await res.text(), 'error');
+        showToast("Server error: " + await res.text(), 'error');
     }
 }

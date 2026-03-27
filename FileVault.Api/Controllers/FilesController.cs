@@ -29,13 +29,13 @@ public async Task<IActionResult> LockFile(int id)
     try 
         {
             var userLevel = GetUserLevel();
-            if (userLevel < 4) return Forbid("Недостаточный уровень доступа");
+            if (userLevel < 4) return Forbid("Insufficient access level");
 
             //Ищем файл в базе по уникальному ID
             var fileRecord = await _db.Files.FindAsync(id);
 
             //Если нет
-            if(fileRecord == null) return NotFound("Файл не найден");
+            if(fileRecord == null) return NotFound("File not found");
 
             //Проверка прав
             var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -43,14 +43,14 @@ public async Task<IActionResult> LockFile(int id)
 
             if(userLevel < 5 && fileRecord.UserId != currentUserId)
             {
-                return StatusCode(403, "Вы можете заблокировать только свои файлы");
+                return StatusCode(403, "You can only unlock your own files");
             }
             
             fileRecord.IsLocked = true;
 
             await _db.SaveChangesAsync();
 
-            return Ok(new {message = "Файл успешно заблокирован", id = fileRecord.Id});
+            return Ok(new {message = "File successfully unlocked", id = fileRecord.Id});
         }
     catch (Exception ex) 
         { 
@@ -64,13 +64,13 @@ public async Task<IActionResult> UnlockFile(int id)
     try 
     {
         var userLevel = GetUserLevel();
-        if (userLevel < 4) return Forbid("Недостаточный уровень доступа");
+        if (userLevel < 4) return Forbid("Insufficient access level");
 
         //Ищем файл в базе по уникальному ID
         var fileRecord = await _db.Files.FindAsync(id);
 
         //Если нет
-        if(fileRecord == null) return NotFound("Файл не найден");
+        if(fileRecord == null) return NotFound("File not found");
 
         //Проверка прав
         var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -78,14 +78,14 @@ public async Task<IActionResult> UnlockFile(int id)
 
         if(userLevel < 5 && fileRecord.UserId != currentUserId)
         {
-            return StatusCode(403, "Вы можете разблокировать только свои файлы");
+            return StatusCode(403, "You can only unlock your own files");
         }
         
         fileRecord.IsLocked = false;
 
         await _db.SaveChangesAsync();
 
-        return Ok(new {message = "Файл успешно разблокирован", id = fileRecord.Id});
+        return Ok(new {message = "File successfully unlocked", id = fileRecord.Id});
     }
     catch (Exception ex) 
     { 
@@ -97,8 +97,8 @@ public async Task<IActionResult> UnlockFile(int id)
     public async Task<IActionResult> UploadFile(IFormFile file)
     {
         var userLevel = GetUserLevel();
-        if (userLevel < 3) return StatusCode(403, "Загрузка доступна с уровня 3");
-        if (file == null || file.Length == 0) return BadRequest("Файл не выбран");
+        if (userLevel < 3) return StatusCode(403, "Upload is available from level 3");
+        if (file == null || file.Length == 0) return BadRequest("No file selected");
 
         var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if(!int.TryParse(userIdString, out int userId)) return Unauthorized();
@@ -127,24 +127,23 @@ public async Task<IActionResult> UnlockFile(int id)
 
         _db.Files.Add(fileRecord);
         await _db.SaveChangesAsync();
-        return Ok(new {message = "Файл успешно загружен", id = fileRecord.Id});
+        return Ok(new {message = "File uploaded successfully", id = fileRecord.Id});
     }
 
     [HttpGet("download/{id}")]
     public async Task<IActionResult> DownloadFile(int id)
     {
         var fileRecord = await _db.Files.FindAsync(id);
-        if (fileRecord == null) return NotFound("Файл не найден в базе");
+        if (fileRecord == null) return NotFound("File not found in database");
 
         var userLevel = GetUserLevel();
         var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
 
         // Проверка блокировки
-        if (fileRecord.IsLocked && userLevel < 4 && fileRecord.UserId != userId)
-            return Forbid("Файл заблокирован");
+        if (fileRecord.IsLocked && userLevel < 4 && fileRecord.UserId != userId) return Forbid("File is locked");
 
         var physicalPath = Path.Combine(_storagePath, fileRecord.Hash);
-        if (!System.IO.File.Exists(physicalPath)) return NotFound("Физический файл отсутствует");
+        if (!System.IO.File.Exists(physicalPath)) return NotFound("Physical file is missing");
 
         // Отдаем файл с его "Виртуальным" именем
         return PhysicalFile(physicalPath, "application/octet-stream", fileRecord.VirtualName);
@@ -159,10 +158,7 @@ public async Task<IActionResult> UnlockFile(int id)
         var userLevel = GetUserLevel();
         var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
         
-        if(userLevel < 5 && fileRecord.UserId != userId)
-        {
-            return Forbid("Нет прав на удаление");
-        }
+        if(userLevel < 5 && fileRecord.UserId != userId) return Forbid("No permission to delete");
 
         _db.Files.Remove(fileRecord);
         await _db.SaveChangesAsync();
@@ -173,7 +169,7 @@ public async Task<IActionResult> UnlockFile(int id)
             var physicalPath = Path.Combine(_storagePath, fileRecord.Hash);
             if (System.IO.File.Exists(physicalPath)) System.IO.File.Delete(physicalPath);
         }
-        return Ok("Файл удален");
+        return Ok("File deleted");
     }
 
     [HttpPut("rename")]
@@ -185,7 +181,7 @@ public async Task<IActionResult> UnlockFile(int id)
         var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
         if(GetUserLevel() < 5 && fileRecord.UserId != userId) return Forbid();
 
-        if(string.IsNullOrWhiteSpace(req.NewName)) return BadRequest("Имя пустое");
+        if(string.IsNullOrWhiteSpace(req.NewName)) return BadRequest("Name is empty");
 
         fileRecord.VirtualName = req.NewName;
         await _db.SaveChangesAsync();
