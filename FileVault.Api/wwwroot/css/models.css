@@ -1,0 +1,47 @@
+/* wwwroot/css/models.css */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Анимация оверлея при появлении */
+    animation: overlayFade 0.3s forwards;
+}
+
+.modal-card {
+    background: white;
+    padding: 35px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    /* Анимация самой карточки */
+    animation: fadeInScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+#toast-container {
+    position: fixed;
+    top: 85px;
+    right: 25px;
+    z-index: 99999;
+}
+
+.toast {
+    background: #2d3436;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    min-width: 250px;
+    /* Анимация вылета тоста справа */
+    animation: toastIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+@keyframes toastIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}

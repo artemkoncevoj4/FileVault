@@ -1,0 +1,50 @@
+/* wwwroot/css/layout.css */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.main-header {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    height: 70px;
+    position: fixed;
+    top: 0; width: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.header-content {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary), #00d2ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.panel {
+    background: var(--bg-panel);
+    border-radius: var(--radius);
+    padding: 30px;
+    box-shadow: var(--shadow);
+    margin-bottom: 25px;
+    border: 1px solid rgba(0,0,0,0.03);
+}
+
+.auth-card {
+    max-width: 400px;
+    margin: 40px auto;
+}
