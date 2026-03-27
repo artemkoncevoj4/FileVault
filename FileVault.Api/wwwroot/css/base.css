@@ -1,16 +1,16 @@
 /* wwwroot/css/base.css */
 :root {
-    --primary: #007bff;
-    --primary-hover: #0056b3;
-    --success: #28a745;
-    --danger: #dc3545;
-    --bg-body: #f5f7fa;
-    --bg-panel: #ffffff;
-    --text-main: #2d3436;
-    --text-muted: #636e72;
-    --radius: 12px;
-    --shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --primary: #4361ee;
+    --primary-light: #4895ef;
+    --success: #4cc9f0;
+    --danger: #f72585;
+    --bg-main: #f8f9fd;
+    --card-bg: #ffffff;
+    --text-dark: #2b2d42;
+    --text-muted: #8d99ae;
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
 }
 
 * {
@@ -20,25 +20,13 @@
 }
 
 body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: var(--bg-body);
-    color: var(--text-main);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-dark);
     line-height: 1.6;
-    padding-top: 80px;
-    min-height: 100vh;
+    padding-top: 90px;
 }
 
 .hidden {
     display: none !important;
-}
-
-/* Анимация проявления для всех окон, когда у них убирают .hidden */
-@keyframes fadeInScale {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-@keyframes overlayFade {
-    from { opacity: 0; backdrop-filter: blur(0px); }
-    to { opacity: 1; backdrop-filter: blur(8px); }
 }

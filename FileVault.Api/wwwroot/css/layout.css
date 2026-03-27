@@ -1,50 +1,92 @@
 /* wwwroot/css/layout.css */
 .container {
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 25px;
 }
 
 .main-header {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(15px); /* Тот самый эффект со скриншотов */
+    -webkit-backdrop-filter: blur(15px);
     height: 70px;
     position: fixed;
     top: 0; width: 100%;
     z-index: 1000;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+
+.main-header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--primary);
+}
+
+.panel {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    box-shadow: var(--shadow);
+    margin-bottom: 25px; /* Уменьшили с 50px до 25px */
+    border: 1px solid rgba(0, 0, 0, 0.02);
+}
+main.container > .panel:last-of-type {
+    margin-bottom: 10px;
+}
+.author-tag {
+    display: block;
+    text-align: center;
+    margin-top: 40px; /* Отступ от последнего блока */
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    opacity: 0.7;
+}
+
+.auth-card {
+    max-width: 420px;
+    margin: 40px auto;
+    text-align: center;
 }
 
 .header-content {
     width: 100%;
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 25px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.main-header h1 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary), #00d2ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.header-controls {
+    display: flex;
+    align-items: center; /* Выравниваем всё по вертикали */
+    gap: 15px;
 }
 
-.panel {
-    background: var(--bg-panel);
-    border-radius: var(--radius);
-    padding: 30px;
-    box-shadow: var(--shadow);
-    margin-bottom: 25px;
-    border: 1px solid rgba(0,0,0,0.03);
+.header-controls .author-tag {
+    align-self: flex-end;
+    margin-bottom: 5px;
+    font-size: 11px;
 }
 
-.auth-card {
-    max-width: 400px;
-    margin: 40px auto;
+#lang-switch {
+    margin: 0 !important; /* Убираем лишние отступы */
+    padding: 5px 10px;
+    height: 32px; /* Фиксируем высоту для центровки */
+    font-size: 13px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: white;
+}
+
+/* Чтобы нижние кнопки (Privacy/Terms) было удобно нажимать */
+footer {
+    padding: 40px 0 80px 0; /* Огромный отступ снизу, чтобы кнопки не жались к краю экрана */
+    text-align: center;
 }
