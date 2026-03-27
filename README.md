@@ -1,129 +1,145 @@
-| **Слой**          | **Технология**                  | **Почему это «хорошо» для портфолио?**                                                      |
-| ----------------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
-| **Backend**       | **ASP.NET Core 9/10**           | Последняя версия LTS (или актуальная Current) показывает, что вы следите за обновлениями.   |
-| **Database**      | **PostgreSQL + EF Core**        | Индустриальный стандарт. Покажете умение работать с миграциями и LINQ.                      |
-| **Auth**          | **ASP.NET Core Identity**       | Встроенное решение. Реализуйте JWT-токены и Cookie-auth для демонстрации разных подходов.   |
-| **Frontend**      | **Blazor WebApp** или **React** | Blazor — «родной» для .NET, позволяет писать всё на C#. React — если хотите быть Fullstack. |
-| **File API**      | **Physical File Provider**      | Хранение на диске VPS. Это дешево (30 ГБ хватит) и учит работе с потоками (Streams).        |
-| **Reverse Proxy** | **YARP** или **Nginx**          | Использование YARP (Yet Another Reverse Proxy) от Microsoft — жирный плюс в резюме.         |
-[[План]]
-/FileVault (корень репозитория)
-├── /src (исходный код)
-│   ├── FileVault.Api (основной проект ASP.NET)
-│   ├── FileVault.Core (логика, модели)
-│   └── FileVault.Infrastructure (БД, работа с диском)
-├── /tests (папка с тестами)
-│   └── FileVault.Tests.Unit
-├── /docs (скриншоты, описание API, схема базы данных)
+# README.md for FileVault Project
+
+## Table of Contents
+1. **Project Overview**
+2. **Getting Started**
+3. **Technologies Used**
+4. **Directory Structure**
+5. **Docker Compose**
+6. **Deployment Instructions**
+7. **Testing**
+
+---
+
+### 1. Project Overview
+
+**FileVault** is a personal cloud storage application built with ASP.NET Core Web API and hosted on Docker, providing a secure file management system.
+
+### 2. Getting Started
+
+#### Prerequisites
+- .NET SDK 9.0 or later
+- Docker
+- Caddy web server
+
+#### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/artemkoncevoj4/FileVault.git
+   cd FileVault
+   ```
+
+2. Build and run using Docker Compose:
+   ```bash
+   docker-compose up --build
+   ```
+
+3. Access the application via your browser at `http://localhost:5018`.
+
+### 3. Technologies Used
+
+| **Technology**              | **Description**                                                                 |
+|-----------------------------|---------------------------------------------------------------------------------|
+| **ASP.NET Core Web API**    | Building the backend service with robust routing, controllers, and models.      |
+| **Entity Framework Core**   | ORM for database operations, providing LINQ queries and migrations.           |
+| **JWT Authentication**      | Handling secure user authentication using JSON Web Tokens.                    |
+| **Docker**                  | Containerizing the application to ensure consistent environments.               |
+| **Caddy**                   | Reverse proxy and static file server, configured for efficient serving.        |
+
+### 4. Directory Structure
+
+```
+FileVault/
+├── Caddyfile
 ├── docker-compose.yml
-├── .gitignore (специальный файл для .NET, чтобы не пушить мусор)
-└── README.md (лицо проекта: что это, как запустить, какой стек)
+├── Dockerfile
+├── FileVault.Api
+│   ├── app.db
+│   ├── appsettings.Development.json
+│   ├── appsettings.json
+│   ├── base
+│   │   └── html
+│   ├── Controllers
+│   │   ├── AdminController.cs
+│   │   ├── AuthController.cs
+│   │   └── FilesController.cs
+│   ├── Database
+│   │   ├── ApplicationContext.cs
+│   │   ├── Files.cs
+│   │   ├── Hasher.cs
+│   │   └── User.cs
+│   ├── .env
+│   ├── .env.example
+│   ├── FileVault.Api.csproj
+│   ├── FileVault.Api.http
+│   ├── FileVault.Api.sln
+│   ├── Migrations
+│   │   ├── 20260321202547_Initial.cs
+│   │   ├── 20260321202547_Initial.Designer.cs
+│   │   └── ApplicationContextModelSnapshot.cs
+│   ├── Program.cs
+│   ├── Properties
+│   │   └── launchSettings.json
+│   ├── Storage
+│   ├── Utils
+│   │   ├── GlobalExeptionHandler.cs
+│   │   └── PathSanitizer.cs
+│   └── wwwroot
+│       ├── css
+│       │   └── style.css
+│       ├── index.html
+│       └── js
+│           ├── core
+│           │   ├── api.js
+│           │   ├── special_ui.js
+│           │   └── ui.js
+│           ├── main.js
+│           └── modules
+│               ├── admin.js
+│               ├── files.js
+│               └── user.js
+├── FileVault.slnx
+├── FileVault.Tests
+│   ├── FileVault.Tests.csproj
+│   └── PathSanitizerTests.cs
+├── .gitignore
+└── README.md
+```
 
-### Этап 1: Основы Web и создание "Скелета"
+### 5. Docker Compose
 
-Прежде чем писать логику, нужно понять, как браузер общается с сервером.
+The `docker-compose.yml` file sets up the environment with services for the backend and database.
 
-- **Что изучить:** Протокол HTTP (Методы GET, POST), структуру проекта ASP.NET Core (Program.cs, Controllers).
-    
-- **Практика:** Создай проект **ASP.NET Core Web API**. Напиши контроллер `TestController`, который по запросу возвращает строку "Server is running".
-    
-- **Результат:** Ты умеешь запускать проект и видишь ответ в браузере или через Swagger.
-    
+### 6. Deployment Instructions
 
-### Этап 2: Работа с базой данных (Entity Framework Core)
+1. Build the Docker images:
+   ```bash
+   docker compose build
+   ```
 
-Твоему сайту нужно помнить, какие файлы загружены.
+2. Run the containers:
+   ```bash
+   docker compose up
+   ```
 
-- **Что изучить:** NuGet пакеты, DbContext, Migrations, LINQ (базовые запросы `Where`, `FirstOrDefault`, `ToList`).
-    
-- **Практика:** Создай модель `StoredFile` (Id, OriginalName, StoragePath, UploadDate, Size). Настрой подключение к SQLite (для начала проще всего — это просто файл рядом с кодом).
-    
-- **Результат:** Ты создал базу данных командой `dotnet ef database update`.
-    
+3. Access your application at `https://file-storage.myftp.org:8443/`.
 
-### Этап 3: Физическое сохранение файлов
+### 7. Testing
 
-Учимся работать с потоками данных (Streams).
+Run tests using the following command:
 
-- **Что изучить:** Интерфейс `IFormFile`, класс `Path`, `FileStream`.
-    
-- **Практика:** Создай метод `Upload`. Он должен брать файл из запроса, генерировать ему уникальное имя (через `Guid.NewGuid()`), сохранять в папку на диске и записывать инфо в БД.
-    
-- **Результат:** Ты выбрал файл на компьютере, нажал "Send" в Swagger, и файл появился в папке проекта.
-    
+```bash
+docker-compose run web dotnet test FileVault.Tests/FileVault.Tests.csproj
+```
 
-### Этап 4: Система безопасности (Identity)
+---
 
-Самый важный этап для разделения доступа.
+## Conclusion
 
-- **Что изучить:** ASP.NET Core Identity, JWT Tokens (если делаешь API) или Cookies (если делаешь MVC/Blazor).
-    
-- **Практика:** Добавь стандартную авторизацию. Создай модель `User`, которая связана с `StoredFile` (связь Один-ко-Многим).
-    
-- **Результат:** У тебя есть эндпоинты `/register` и `/login`. Ты получаешь доступ к загрузке только после входа.
-    
+FileVault is a comprehensive solution for personal cloud storage, demonstrating skills in modern web development and DevOps practices.
 
-### Этап 5: Логика разделения доступа (Authorization)
+**Contributing**
+Feel free to contribute to the project by submitting issues or pull requests!
 
-Чтобы Вася не скачал файлы Пети.
-
-- **Что изучить:** Claims (заявления) пользователя, `User.Identity.Name`.
-    
-- **Практика:** При загрузке файла записывай в БД `OwnerId` (ID текущего юзера). При запросе списка файлов делай фильтр: `db.Files.Where(f => f.OwnerId == currentUserId)`.
-    
-- **Результат:** Каждый пользователь видит только свою "флешку".
-    
-
-### Этап 6: Чистая Архитектура (Refactoring)
-
-Теперь превращаем "код новичка" в "код профессионала" для резюме.
-
-- **Что изучить:** Dependency Injection (DI), Паттерн Repository или Service Layer.
-    
-- **Практика:** Вынеси логику работы с файлами из контроллера в отдельный сервис `FileService`. Контроллер должен только принимать запрос и вызывать метод сервиса.
-    
-- **Результат:** Код чистый, методы короткие, логика отделена от HTTP-запросов.
-    
-
-### Этап 7: Frontend (Интерфейс)
-
-Сайту нужна "морда".
-
-- **Что изучить:** HTML, CSS (Bootstrap или Tailwind), базовый JavaScript (или Blazor).
-    
-- **Практика:** Создай страницу со списком файлов в виде таблицы с кнопками "Скачать" и "Удалить". Добавь полосу прогресса загрузки (Progress Bar).
-    
-- **Результат:** Полноценный сайт, которым можно пользоваться через браузер.
-    
-
-### Этап 8: Unit-тестирование
-
-Показываем, что мы заботимся о качестве.
-
-- **Что изучить:** xUnit, Moq (библиотека для создания "поддельных" объектов).
-    
-- **Практика:** Напиши тест для `FileService`. Проверь, что если пользователь пытается скачать чужой файл, сервис выдает ошибку (Exception).
-    
-- **Результат:** У тебя есть папка `Tests`, где лежат автоматические проверки твоего кода.
-    
-
-### Этап 9: Docker и Деплой на VPS
-
-Выход в реальный мир.
-
-- **Что изучить:** Dockerfile, Docker-compose, основы Linux (SSH, работа с папками).
-    
-- **Практика:** Напиши Dockerfile для своего приложения. На VPS установи Docker. Запусти проект так, чтобы база данных и сайт работали в контейнерах.
-    
-- **Результат:** Твой сайт доступен по IP-адресу твоего сервера в интернете.
-    
-
-### Этап 10: Логирование и мониторинг
-
-Финальный штрих для портфолио.
-
-- **Что изучить:** Serilog.
-    
-- **Практика:** Настрой запись логов в файл. Записывай каждое действие: "Юзер X загрузил файл Y", "Ошибка доступа: Юзер А пытался украсть файл Б".
-    
-- **Результат:** Ты видишь всё, что происходит на сервере, не заходя в код.
+**License**
+This project is licensed under the MIT License - see the LICENSE file for details.

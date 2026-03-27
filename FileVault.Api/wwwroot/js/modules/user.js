@@ -1,6 +1,7 @@
 import { showToast } from '../core/ui.js';
 import { loadFiles } from './files.js';
 import { loadAdminData } from './admin.js';
+import { t } from '../core/i18n.js';
 
 export async function login() {
     const login = document.getElementById('loginInput').value;
@@ -16,21 +17,21 @@ export async function login() {
         const data = await res.json();
         localStorage.setItem('vault_user', JSON.stringify(data.user));
         
-        showToast("Вход выполнен!");
+        showToast(t('toastLoginSuccess')); // Используем t()
         
-        // Вызываем глобальную функцию checkAuth (она определена в main.js)
+        // Call global checkAuth function defined in main.js
         if (window.checkAuth) window.checkAuth();
         
-        // Загружаем файлы
+        // Load files
         await loadFiles();
         
-        // Если админ, грузим список пользователей
+        // If admin, load user list
         if (data.user.accessLevel >= 5) {
             setTimeout(() => loadAdminData(), 100);
         }
     } else {
         const error = await res.text();
-        showToast("Ошибка входа: " + error, 'error');
+        showToast(t('toastLoginFail'), 'error');
     }
 }
 
@@ -41,7 +42,7 @@ export async function logout() {
             credentials: 'same-origin' 
         });
     } catch (e) {
-        console.error("Ошибка при запросе на логаут:", e);
+        console.error("Logout request failed:", e);
     }
 
     localStorage.removeItem('vault_user');
@@ -59,9 +60,9 @@ export async function register() {
     });
 
     if (response.ok) {
-        showToast("Регистрация успешна! Теперь войдите.");
+        showToast(t('toastRegSuccess'));
     } else {
         const error = await response.text();
-        showToast("Ошибка регистрации: " + error, 'error');
+        showToast(t('toastRegError'), 'error');
     }
 }

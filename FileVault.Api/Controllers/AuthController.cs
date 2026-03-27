@@ -27,8 +27,7 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] AuthRequest req)
     {
-        if (await _db.Users.AnyAsync(u => u.Login == req.Login))
-            return BadRequest("Логин занят");
+        if (await _db.Users.AnyAsync(u => u.Login == req.Login)) return BadRequest("Login is already taken");
 
         var user = new User {
             Login = req.Login,
@@ -38,15 +37,14 @@ public class AuthController : ControllerBase
 
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
-        return Ok("Регистрация успешна");
+        return Ok("Registration successful");
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] AuthRequest req)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Login == req.Login);
-        if (user == null || !_hasher.Verify(req.Password, user.PasswordHash))
-            return Unauthorized("Неверный логин или пароль");
+        if (user == null || !_hasher.Verify(req.Password, user.PasswordHash)) return Unauthorized("Invalid login or password");
 
         // Создаем токен
         var token = GenerateJwtToken(user);
@@ -62,7 +60,7 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("jwtToken", token, cookieOptions);
 
         return Ok(new { 
-            message = "Успешный вход",
+            message = "Login successful",
             user = new UserDto(user.Id, user.Login, user.AccessLevel)
         });
     }
@@ -71,7 +69,7 @@ public class AuthController : ControllerBase
     public IActionResult Logout()
     {
         Response.Cookies.Delete("jwtToken");
-        return Ok("Вы вышли из системы");
+        return Ok("Logged out successfully");
     }
     
     private string GenerateJwtToken(User user)

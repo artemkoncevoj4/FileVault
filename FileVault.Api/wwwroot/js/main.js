@@ -1,9 +1,21 @@
 import { login, logout, register } from './modules/user.js';
-import { loadFiles, uploadFile, downloadFile, lockFile, unlockFile, deleteFileOnServer, renamePrompt, closeRenameModal, confirmRename } from './modules/files.js';
+import { 
+    loadFiles, 
+    loadStorageStats, // Импортируем из files.js
+    uploadFile, 
+    downloadFile,
+    lockFile, 
+    unlockFile, 
+    deleteFileOnServer, 
+    renamePrompt, 
+    closeRenameModal, 
+    confirmRename 
+} from './modules/files.js';
 import { loadAdminData, changeLevel, deleteUser } from './modules/admin.js';
 import { showTerms, showPrivacy } from './core/special_ui.js';
+import { t, applyTranslations, changeLanguage } from './core/i18n.js';
 
-// Выносим всё в window, чтобы HTML (onclick) видел функции
+// Прокидываем функции в глобальную область видимости
 window.login = login;
 window.logout = logout;
 window.register = register;
@@ -14,8 +26,8 @@ window.closeRenameModal = closeRenameModal;
 window.confirmRename = confirmRename;
 window.changeLevel = changeLevel;
 window.deleteUser = deleteUser;
+window.changeLanguage = changeLanguage;
 
-// Обработчик для кнопок в таблице
 window.safeAction = (action, id, name) => {
     if (action === 'download') downloadFile(id);
     if (action === 'lock') lockFile(id);
@@ -24,7 +36,6 @@ window.safeAction = (action, id, name) => {
     if (action === 'rename') renamePrompt(id, name);
 };
 
-// Функция проверки авторизации (теперь она только здесь)
 window.checkAuth = function() {
     const userData = localStorage.getItem('vault_user');
     if (userData) {
@@ -32,15 +43,22 @@ window.checkAuth = function() {
         document.getElementById('auth-panel').classList.add('hidden');
         document.getElementById('profile-panel').classList.remove('hidden');
         document.getElementById('files-panel').classList.remove('hidden');
-        document.getElementById('welcomeText').innerText = `Привет, ${user.login}!`;
-        document.getElementById('userLevel').innerText = user.accessLevel;
+        
+        const welcomeEl = document.getElementById('welcomeText');
+        const userLevelEl = document.getElementById('userLevel');
+        if (welcomeEl) welcomeEl.innerText = `${t('welcomePrefix')}, ${user.login}!`;
+        if (userLevelEl) userLevelEl.innerText = user.accessLevel;
 
         if (user.accessLevel >= 5) {
             document.getElementById('admin-panel').classList.remove('hidden');
             loadAdminData();
         }
+        
+        // Для уровня 3+ показываем загрузку и шкалу
         if (user.accessLevel >= 3) {
             document.getElementById('upload-section').classList.remove('hidden');
+            // Вызываем импортированную функцию из files.js
+            loadStorageStats(); 
         }
         loadFiles();
     } else {
@@ -51,16 +69,19 @@ window.checkAuth = function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    applyTranslations();
     window.checkAuth();
     
-    // Слушатель для красивого отображения имени файла при выборе
     const fileInput = document.getElementById('fileInput');
     if (fileInput) {
         fileInput.addEventListener('change', () => {
             const display = document.getElementById('fileNameDisplay');
             if (fileInput.files[0]) {
-                display.innerText = "Выбран файл: " + fileInput.files[0].name;
+                display.innerText = `${t('selectedFile')}: ${fileInput.files[0].name}`;
                 display.style.color = "#28a745";
+            } else {
+                display.innerText = t('noFileSelected');
+                display.style.color = "#666";
             }
         });
     }

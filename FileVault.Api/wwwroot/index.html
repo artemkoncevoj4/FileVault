@@ -1,74 +1,104 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FileVault - Облако</title>
+    <title>FileVault - Cloud Storage</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <header class="main-header">
-        <div class="header-content">
+   <header class="main-header">
+        <div class="header-content" style="display: flex; justify-content: space-between; align-items: center;">
             <h1>☁️ FileVault Storage</h1>
-            <span class="author-tag">by artemkoncevoj4</span>
+            <div class="header-controls">
+                <span class="author-tag">by artemkoncevoj4</span>
+                <select id="lang-switch" onchange="changeLanguage(this.value)" style="margin-left: 15px; padding: 5px; border-radius: 5px;">
+                    <option value="en">ENG</option>
+                    <option value="ru">РУС</option>
+                </select>
+            </div>
         </div>
     </header>
 
     <main class="container">
         
         <div id="auth-panel" class="panel auth-card">
-            <h2>Вход в систему</h2>
-            <input type="text" id="loginInput" placeholder="Ваш логин">
-            <input type="password" id="passwordInput" placeholder="Пароль">
+            <h2 data-i18n="signInTitle">Sign In</h2>
+            <input type="text" id="loginInput" data-i18n-placeholder="loginPlaceholder" placeholder="Username">
+            <input type="password" id="passwordInput" data-i18n-placeholder="passPlaceholder" placeholder="Password">
             <div class="auth-buttons">
-                <button onclick="login()">Войти</button>
-                <button onclick="register()" class="btn-success">Создать аккаунт</button>
+                <button onclick="login()" data-i18n="loginBtn">Login</button>
+                <button onclick="register()" class="btn-success" data-i18n="createAccBtn">Create Account</button>
             </div>
         </div>
 
         <div id="profile-panel" class="panel hidden">
             <div class="panel-header">
-                <h2 id="welcomeText">Привет!</h2>
-                <button onclick="logout()" class="btn-danger">Выйти</button>
+                <h2 id="welcomeText"></h2> <button onclick="logout()" class="btn-danger" data-i18n="logoutBtn">Logout</button>
             </div>
-            <p>Ваш уровень доступа: <b id="userLevel"></b></p>
+            <p><span data-i18n="accessLevelLabel">Access Level:</span> <b id="userLevel"></b></p>
         </div>
 
         <div id="files-panel" class="panel hidden">
-            <h2>📂 Мои файлы</h2>
+            <h2 data-i18n="filesTitle">📂 My Files</h2>
             
-            <div id="upload-section" class="upload-zone hidden">
-                <p class="success-text">✓ Вам доступна загрузка файлов (уровень 3+)</p>
-                
-                <div class="mobile-input-container">
-                    <input type="file" id="fileInput" name="files" accept="*/*" multiple>
-                    
-                    <label class="file-label">
-                        <span class="file-icon">📁</span> 
-                        <span class="file-text">Нажмите здесь, чтобы выбрать файл</span>
-                    </label>
+            <div id="storage-info" class="panel hidden">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-weight: bold; font-size: 14px;">💽 Linux Server Storage</span>
+                    <span id="storage-text" style="font-size: 13px; color: #555;">0 / 0 GB</span>
+                </div>
+                <div class="progress-container-static">
+                    <div id="storage-bar" class="progress-bar-fill blue" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div id="upload-section" class="panel hidden">
+                <h3 data-i18n="uploadTitle">📤 Upload File</h3>
+                <div class="upload-container">
+                    <div class="drop-zone">
+                        <input type="file" id="fileInput">
+                        <div class="file-label" id="fileNameDisplay" data-i18n="selectFilePrompt">Select file...</div>
+                    </div>
+                    <button class="btn-success" onclick="uploadFile()" data-i18n="uploadBtn">Upload</button>
                 </div>
 
-                <div id="fileNameDisplay" class="file-name-hint">Файл не выбран</div>
-                
-                <button onclick="uploadFile()" class="upload-btn">Загрузить на сервер</button>
-                
-                <div id="progress-container" class="progress-wrapper hidden">
-                    <div id="progress-bar" class="progress-bar"></div>
+                <div id="progress-container" class="hidden" style="margin-top: 15px;">
+                    <div class="progress-container-static">
+                        <div id="progress-bar" class="progress-bar-fill green" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-text" style="text-align: center; font-size: 12px; margin-top: 5px;"></p>
                 </div>
-                <small id="progress-text" class="hidden text-center">0%</small>
             </div>
-            
-            <hr class="divider">
-            <div id="file-list"><p>Загрузка списка файлов...</p></div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n="thFileName">Name</th>
+                            <th data-i18n="thSize">Size</th>
+                            <th data-i18n="thUser">Owner</th>
+                            <th data-i18n="thAction">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="filesTable">
+                        </tbody>
+                </table>
+            </div>
         </div>
 
         <div id="admin-panel" class="panel admin-card hidden">
-            <h2>👑 Админ-центр</h2>
-            <div class="table-responsive">
+            <h2 data-i18n="adminTitle">👑 Admin Center</h2>
+            <div class="table-container">
                 <table>
-                    <thead><tr><th>ID</th><th>Логин</th><th>Уровень</th><th>Действие</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th data-i18n="thId">ID</th>
+                            <th data-i18n="thUser">Username</th>
+                            <th data-i18n="thLevel">Level</th>
+                            <th data-i18n="thAction">Action</th>
+                        </tr>
+                    </thead>
                     <tbody id="usersTable"></tbody>
                 </table>
             </div>
@@ -77,37 +107,35 @@
         <footer class="main-footer">
             <p>© 2026 Created by <b>artemkoncevoj4</b></p>
             <div class="footer-links">
-                <a href="#" onclick="showTerms()">Terms of Service</a> | 
-                <a href="#" onclick="showPrivacy()">Privacy Policy</a>
+                <a href="#" onclick="showTerms()" data-i18n="tosLink">Terms of Service</a> | 
+                <a href="#" onclick="showPrivacy()" data-i18n="privacyLink">Privacy Policy</a>
             </div>
         </footer>
-
     </main>
+
+    <div id="rename-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 class="modal-title" data-i18n="renameTitle">✏️ Rename</h3>
+            <p class="modal-subtitle"><span data-i18n="renameOldName">Current name:</span> <b id="renameOldNameDisplay"></b></p>
+            <input type="text" id="renameInput" data-i18n-placeholder="renameInputPlaceholder" placeholder="New name">
+            <div class="modal-actions dual-buttons">
+                <button onclick="closeRenameModal()" class="btn-secondary" data-i18n="cancelBtn">Cancel</button>
+                <button onclick="confirmRename()" class="btn-success" data-i18n="saveBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
 
     <div id="legal-modal" class="modal-overlay hidden">
         <div class="modal-card">
             <h2 id="legal-title" class="modal-title"></h2>
             <div id="legal-content" class="modal-text"></div>
             <div class="modal-actions">
-                <button onclick="document.getElementById('legal-modal').classList.add('hidden')">I Understand</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="rename-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <h3 class="modal-title">✏️ Переименовать</h3>
-            <p class="modal-subtitle">Старое имя: <b id="renameOldNameDisplay"></b></p>
-            <input type="text" id="renameInput" placeholder="Новое имя">
-            <div class="modal-actions dual-buttons">
-                <button onclick="closeRenameModal()" class="btn-secondary">Отмена</button>
-                <button onclick="confirmRename()" class="btn-success">Сохранить</button>
+                <button onclick="document.getElementById('legal-modal').classList.add('hidden')" data-i18n="modalUnderstand">I Understand</button>
             </div>
         </div>
     </div>
 
     <div id="toast-container" class="toast-container"></div>
-
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

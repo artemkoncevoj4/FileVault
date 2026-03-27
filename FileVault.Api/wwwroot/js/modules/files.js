@@ -1,11 +1,90 @@
-import { apiRequest } from "../core/api.js";
-import { showToast } from "../core/ui.js";
+import { apiRequest } from '../core/api.js';
+import { showToast } from '../core/ui.js';
+import { t } from '../core/i18n.js';
 
 let currentFileToRename = { id: null, name: "" };
 
-export function uploadFile() {
+// --- Загрузка списка файлов ---
+export async function loadFiles() {
+    const tbody = document.getElementById('filesTable');
+    if (!tbody) return;
+
+    const res = await apiRequest('/api/files/list');
+    if (res.ok) {
+        const files = await res.json();
+        const userData = JSON.parse(localStorage.getItem('vault_user') || '{}');
+        const currentUserId = userData.id;
+        const userLvl = userData.accessLevel;
+        
+        if (files.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">${t('noFilesFound')}</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = files.map(f => {
+            const isOwner = f.ownerId === currentUserId;
+            const canDownload = userLvl >= 2;
+            const canEdit = (isOwner && userLvl >= 3) || userLvl >= 5;
+            const canLock = userLvl >= 4; // Замок скрыт для уровня 3
+
+            return `
+                <tr>
+                    <td><b>${f.virtualName}</b></td>
+                    <td>${(f.size / 1024).toFixed(1)} KB</td>
+                    <td><span class="badge">${isOwner ? t('youLabel') : t('ownerLabel')}</span></td>
+                    <td>${f.isLocked ? '🔒' : '🔓'}</td>
+                    <td>
+                        <div class="btn-group" style="display:flex; gap:5px;">
+                            ${canDownload ? `<button class="btn-sm btn-primary" onclick="safeAction('download', ${f.id})">📥</button>` : ''}
+                            ${canEdit ? `
+                                <button class="btn-sm btn-secondary" onclick="safeAction('rename', ${f.id}, '${f.virtualName}')">✏️</button>
+                                <button class="btn-sm btn-danger" onclick="safeAction('delete', ${f.id})">🗑️</button>
+                            ` : ''}
+                            ${canLock ? `
+                                <button class="btn-sm ${f.isLocked ? 'btn-success' : 'btn-warning'}" onclick="safeAction('${f.isLocked ? 'unlock' : 'lock'}', ${f.id})">
+                                    ${f.isLocked ? '🔓' : '🔒'}
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>`;
+        }).join('');
+    }
+    loadStorageStats();
+}
+export async function loadStorageStats() {
+    const res = await apiRequest('/api/files/storage-stats');
+    if (res.ok) {
+        const stats = await res.json();
+        const bar = document.getElementById('storage-bar');
+        const text = document.getElementById('storage-text');
+        const infoPanel = document.getElementById('storage-info');
+
+        // Показываем панель, если она была скрыта
+        if (infoPanel) infoPanel.classList.remove('hidden');
+        
+        if (bar) {
+            bar.style.width = stats.percentUsed + '%';
+            // Если занято больше Х%, делаем полоску красной
+            bar.style.background = stats.percentUsed > 80 
+                ? "linear-gradient(90deg, #ff416c, #ff4b2b)" 
+                : "linear-gradient(90deg, #007bff, #3395ff)";
+        }
+
+        if (text) {
+            // Контроллер уже прислал ГБ, просто выводим их
+            text.innerText = `${stats.used} GB / ${stats.total} GB (${stats.percentUsed}%)`;
+        }
+    }
+}
+
+// --- Операции с файлами ---
+export async function uploadFile() {
+    const userData = JSON.parse(localStorage.getItem('vault_user') || '{}');
+    if (userData.accessLevel < 3) return showToast("Access Denied (Level 3 required)", "error");
+
     const fileInput = document.getElementById('fileInput');
-    if (!fileInput.files[0]) return showToast("Выберите файл", "error");
+    if (!fileInput || !fileInput.files[0]) return showToast(t('noFileSelected'), "error");
 
     const file = fileInput.files[0];
     const formData = new FormData();
@@ -21,161 +100,90 @@ export function uploadFile() {
     container.classList.remove('hidden');
     text.classList.remove('hidden');
 
-    xhr.upload.onprogress = function(event) {
+    xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
             const percent = Math.round((event.loaded / event.total) * 100);
             bar.style.width = percent + '%';
-            text.innerText = `Загрузка: ${percent}%`;
+            text.innerText = `${t('uploading')}: ${percent}%`;
         }
     };
 
-    xhr.onload = async function() {
+    xhr.onload = async () => {
         container.classList.add('hidden');
         text.classList.add('hidden');
-        bar.style.width = '0%';
-
         if (xhr.status >= 200 && xhr.status < 300) {
-            showToast("Файл успешно загружен");
+            showToast(t('toastFileUploaded') || "Success!");
             fileInput.value = '';
+            // Сбрасываем текст выбора файла в UI
+            const display = document.getElementById('fileNameDisplay');
+            if(display) display.innerText = t('noFileSelected');
             await loadFiles();
         } else {
-            showToast("Ошибка загрузки: " + xhr.responseText, "error");
+            showToast("Upload failed", "error");
         }
     };
 
-    xhr.onerror = () => {
-        showToast("Критическая ошибка сети", "error");
-        container.classList.add('hidden');
-    };
-
-    xhr.open('POST', '/api/files/upload');
+    xhr.open('POST', '/api/files/upload'); // Убедись, что путь совпадает с контроллером
     xhr.send(formData);
 }
+export function downloadFile(fileId) {
+    // Прямой переход по ссылке для скачивания (браузер сам обработает файл)
+    const userData = JSON.parse(localStorage.getItem('vault_user') || '{}');
+    if (userData.accessLevel < 2) return showToast("Access Denied (Level 2 required)", "error");
 
-export async function loadFiles() {
-    const userJson = localStorage.getItem('vault_user');
-    if (!userJson) return;
-    const user = JSON.parse(userJson);
-    const lvl = user.accessLevel;
-    const currentUserId = user.id;
-
-    const res = await apiRequest('/api/files/list');
-    if (res.ok) {
-        const files = await res.json();
-        const list = document.getElementById('file-list');
-
-        list.innerHTML = files.map(file => {
-            const isOwner = file.ownerId === currentUserId;
-            const isAdmin = lvl === 5;
-
-            return `
-                <div class="file-item" style="${file.isLocked ? 'background: #fff3cd;' : ''}">
-                    <div>
-                        <span>${file.isLocked ? '🔒' : '📄'} <b>${file.virtualName}</b></span>
-                        <br><small style="color: gray;">Владелец: #${file.ownerId} ${isOwner ? '(Вы)' : ''}</small>
-                    </div>
-                    <div>
-                        ${lvl >= 2 ? `<button onclick="safeAction('download', ${file.id})" class="btn-success">Скачать</button>` : ''}
-                        ${lvl >= 4 ? (file.isLocked ? 
-                            `<button onclick="safeAction('unlock', ${file.id})" style="background: #007bff; margin-left: 5px;">Открыть</button>` : 
-                            `<button onclick="safeAction('lock', ${file.id})" style="background: #6c757d; margin-left: 5px;">Закрыть</button>`) : ''}
-                        ${(lvl >= 3 && isOwner) || isAdmin ? 
-                            `<button onclick="safeAction('rename', ${file.id}, '${file.virtualName}')" style="background: #17a2b8; margin-left: 5px;">✏️</button>` : ''}
-                        ${(lvl >= 3 && isOwner) || isAdmin ? 
-                            `<button onclick="safeAction('delete', ${file.id})" class="btn-danger" style="margin-left: 5px;">Удалить</button>` : ''}
-                    </div>
-                </div>`;
-        }).join('');
-    } 
-    else
-    {
-        showToast("Ошибка загрузки списка файлов", 'error');
-    }
+    window.location.href = `/api/files/download/${fileId}`;
 }
-
-export async function downloadFile(fileId) {
-    const response = await fetch(`/api/files/download/${fileId}`, { credentials: 'same-origin' });
-    if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const contentDisposition = response.headers.get('Content-Disposition');
-        let fileName = 'file';
-        if (contentDisposition) {
-            const match = contentDisposition.match(/filename\*?=['"]?(?:UTF-8'')?([^'";]+)['"]?/);
-            if (match) fileName = decodeURIComponent(match[1]);
-        }
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-    } else {
-        showToast("Ошибка при скачивании", 'error');
-    }
-}
-
 export async function lockFile(fileId) {
     const res = await apiRequest(`/api/files/lock/${fileId}`, 'PUT');
     if (res.ok) {
-        showToast("Файл закрыт");
+        showToast(t('toastFileLocked'));
         loadFiles();
-    } else {
-        showToast("Ошибка при закрытии", 'error');
     }
 }
-
 export async function unlockFile(fileId) {
     const res = await apiRequest(`/api/files/unlock/${fileId}`, 'PUT');
     if (res.ok) {
-        showToast("Файл открыт");
+        showToast(t('toastFileUnlocked'));
         loadFiles();
-    } else {
-        showToast("Ошибка при открытии", 'error');
     }
 }
-
 export async function deleteFileOnServer(fileId) {
-    if (!confirm("Удалить файл навсегда?")) return;
+    const userData = JSON.parse(localStorage.getItem('vault_user') || '{}');
+    if (userData.accessLevel < 3) return showToast("Access Denied", "error");
+    
+    if (!confirm(t('confirmDelete') || "Delete this file?")) return;
+
     const res = await apiRequest(`/api/files/delete/${fileId}`, 'DELETE');
     if (res.ok) {
-        showToast("Файл удален");
+        showToast(t('toastFileDeleted'));
         loadFiles();
     } else {
-        const err = await res.text();
-        showToast("Ошибка: " + err, 'error');
+        showToast("Error deleting file", 'error');
     }
 }
 
+// --- Переименование ---
 export function renamePrompt(fileId, oldName) {
     currentFileToRename = { id: fileId, name: oldName };
     document.getElementById('renameOldNameDisplay').innerText = oldName;
     document.getElementById('renameInput').value = "";
     document.getElementById('rename-modal').classList.remove('hidden');
 }
-
 export function closeRenameModal() {
     document.getElementById('rename-modal').classList.add('hidden');
-    currentFileToRename = { id: null, name: "" };
 }
-
 export async function confirmRename() {
     const newNameRaw = document.getElementById('renameInput').value.trim();
+    if (!newNameRaw) return showToast(t('toastNameEmpty'), 'error');
+
     const { id: fileId, name: oldName } = currentFileToRename;
-
-    if (!newNameRaw) return showToast("Имя пустое!", 'error');
-
     const ext = oldName.includes('.') ? oldName.substring(oldName.lastIndexOf('.')) : '';
     let newName = newNameRaw.endsWith(ext) ? newNameRaw : newNameRaw + ext;
 
-    closeRenameModal();
     const res = await apiRequest('/api/files/rename', 'PUT', { id: fileId, NewName: newName });
-
     if (res.ok) {
-        showToast("Файл переименован!");
+        showToast(t('toastFileRenamed'));
+        closeRenameModal();
         loadFiles();
-    } else {
-        showToast("Ошибка сервера: " + await res.text(), 'error');
     }
 }

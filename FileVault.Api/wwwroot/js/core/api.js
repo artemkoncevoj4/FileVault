@@ -1,4 +1,5 @@
 import {showToast} from './ui.js';
+import { t } from '../core/i18n.js'; // Используем только помощник t
 export async function apiRequest(url, method = 'GET', body = null) {
     const options = { 
         method, 
@@ -10,14 +11,14 @@ export async function apiRequest(url, method = 'GET', body = null) {
     try {
         const response = await fetch(url, options);
         if (response.status === 401) {
-            // Вместо прямого вызова logout просто кидаем событие или редиректим
+            // Instead of direct logout, clear storage and reload
             localStorage.removeItem('vault_user');
             window.location.reload(); 
             return { ok: false };
         }
         return response;
     } catch (e) {
-        showToast("Ошибка сети", "error");
+        showToast(t('toastNetError'), "error")
         return { ok: false };
     }
 }

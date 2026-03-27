@@ -125,25 +125,18 @@ input[type="file"] {
     left: 0;
     width: 100%;
     height: 100%;
-    opacity: 0.01; /* 0.01 спасает от бага мобильного Firefox, который игнорирует прозрачные элементы */
+    opacity: 0;
     cursor: pointer;
-    z-index: 10;
-    display: block !important;
+    z-index: 2; /* Он должен быть сверху надписи, но внутри drop-zone */
 }
 
 /* Красивая подложка, которую видит пользователь */
 .file-label {
     position: relative;
     z-index: 1;
-    display: block;
-    padding: 20px;
-    border: 2px dashed #007bff;
-    border-radius: 12px;
-    background: rgba(0, 123, 255, 0.05);
-    text-align: center;
-    width: 100%;
-    pointer-events: none; /* Все клики сквозняком пролетают в #fileInput */
-    transition: all 0.2s ease;
+    pointer-events: none; /* Текст не должен мешать клику по инпуту */
+    color: #007bff;
+    font-weight: 500;
 }
 
 /* МАГИЯ: Анимация нажатия! Когда нажимаем на прозрачный input, сжимается label под ним */
@@ -225,6 +218,31 @@ th, td {
     margin-bottom: 20px;
 }
 
+.upload-container {
+    position: relative;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.drop-zone {
+    position: relative;
+    border: 2px dashed #007bff;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    background: rgba(0, 123, 255, 0.05);
+    transition: background 0.2s;
+    cursor: pointer; /* Показываем, что сюда можно жать */
+}
+.drop-zone:hover {
+    background: rgba(0, 123, 255, 0.1);
+}
+.upload-container:hover .file-label {
+    background: rgba(0, 123, 255, 0.1);
+    border-color: #0056b3;
+}
+
 .success-text { color: #28a745; margin-bottom: 15px; font-weight: 500; }
 .upload-btn { width: 100%; margin-top: 10px; }
 .divider { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
@@ -290,13 +308,108 @@ th, td {
 
 .modal-title { color: #007bff; margin-bottom: 15px; text-align: center; }
 .modal-subtitle { color: #666; font-size: 14px; margin-bottom: 20px; word-break: break-all; }
-.modal-text { font-size: 14px; line-height: 1.6; color: #444; white-space: pre-wrap; }
+.modal-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #444;
+    white-space: pre-wrap; /* Это заставит \n работать как перенос строки */
+    max-height: 400px;
+    overflow-y: auto;
+}
 
 .modal-actions { margin-top: 25px; display: flex; justify-content: center; }
 .modal-actions button { min-width: 150px; }
 .dual-buttons { gap: 15px; }
 .dual-buttons button { flex: 1; }
+/* Компактный выбор файла */
+.file-label {
+    display: block;
+    padding: 10px;
+    border: 2px dashed #007bff;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    background: #f8f9fa;
+    transition: 0.3s;
+}
 
+.file-label:hover { background: #e9ecef; }
+
+.file-name-status {
+    margin: 8px 0;
+    font-size: 0.9em;
+    text-align: center;
+    color: #666;
+}
+
+.file-name-status.selected {
+    color: #28a745 !important;
+    font-weight: bold;
+}
+
+/* Группировка кнопок в таблице чтобы не разъезжались */
+.btn-sm {
+    padding: 5px 8px;
+    font-size: 14px;
+    line-height: 1;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-group {
+    display: flex;
+    gap: 4px;
+}
+
+/* Фикс для ячеек, чтобы не прыгали */
+.actions-cell {
+    width: 1%;
+    white-space: nowrap;
+}
+
+/* Убираем лишние отступы у панелей */
+.panel {
+    padding: 15px 20px !important;
+    margin-bottom: 15px !important;
+}
+/* Общий контейнер для всех шкал */
+.progress-container-static {
+    width: 100%;
+    height: 12px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Заливка */
+.progress-bar-fill {
+    height: 100%;
+    transition: width 0.4s ease;
+    border-radius: 10px;
+}
+
+.green {
+    background: linear-gradient(90deg, #28a745, #5ddc74);
+}
+
+.blue {
+    background: linear-gradient(90deg, #007bff, #3395ff);
+}
+
+/* Анимация полоски загрузки */
+#progress-bar {
+    position: relative;
+    background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
+    background-size: 1rem 1rem;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    from { background-position: 1rem 0; }
+    to { background-position: 0 0; }
+}
 /* =========================================
    УВЕДОМЛЕНИЯ (ТОСТЫ В ПРАВОМ ВЕРХНЕМ УГЛУ)
    ========================================= */
