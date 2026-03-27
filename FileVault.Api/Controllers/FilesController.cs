@@ -97,7 +97,7 @@ public async Task<IActionResult> UnlockFile(int id)
     public async Task<IActionResult> UploadFile(IFormFile file)
     {
         var userLevel = GetUserLevel();
-        if (userLevel < 3) return StatusCode(403, "Upload is available from level 3");
+        if (userLevel < 3) return Forbid("Upload is available from level 3");
         if (file == null || file.Length == 0) return BadRequest("No file selected");
 
         var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -133,10 +133,12 @@ public async Task<IActionResult> UnlockFile(int id)
     [HttpGet("download/{id}")]
     public async Task<IActionResult> DownloadFile(int id)
     {
+        var userLevel = GetUserLevel();
+        if (userLevel < 2) return Forbid("Level 2 required to download");
+
         var fileRecord = await _db.Files.FindAsync(id);
         if (fileRecord == null) return NotFound("File not found in database");
 
-        var userLevel = GetUserLevel();
         var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
 
         // Проверка блокировки
@@ -216,6 +218,38 @@ public async Task<IActionResult> UnlockFile(int id)
 
         return Ok(files);
     }
+
+    [HttpGet("storage-stats")]
+    public IActionResult GetStorageStats()
+    {
+        var userLevel = GetUserLevel();
+        if (userLevel < 3) return Forbid();
+
+        try
+        {
+            var drive = new DriveInfo(Directory.GetCurrentDirectory()); 
+            
+            double totalBytes = drive.TotalSize;
+            double freeBytes = drive.AvailableFreeSpace;
+            double usedBytes = totalBytes - freeBytes;
+
+            // Переводим в ГБ
+            double totalGb = totalBytes / 1073741824.0;
+            double usedGb = usedBytes / 1073741824.0;
+
+            return Ok(new
+            {
+                total = Math.Round(totalGb, 2),
+                used = Math.Round(usedGb, 2),
+                percentUsed = Math.Round((usedGb / totalGb) * 100, 2)
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest("Ошибка чтения диска: " + ex.Message);
+        }
+    }
+
     public class RenameRequest 
     {
         public int Id { get; set; }

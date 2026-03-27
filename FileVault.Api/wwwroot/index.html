@@ -43,26 +43,32 @@
         <div id="files-panel" class="panel hidden">
             <h2 data-i18n="filesTitle">📂 My Files</h2>
             
+            <div id="storage-info" class="panel hidden">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-weight: bold; font-size: 14px;">💽 Linux Server Storage</span>
+                    <span id="storage-text" style="font-size: 13px; color: #555;">0 / 0 GB</span>
+                </div>
+                <div class="progress-container-static">
+                    <div id="storage-bar" class="progress-bar-fill blue" style="width: 0%"></div>
+                </div>
+            </div>
+
             <div id="upload-section" class="panel hidden">
                 <h3 data-i18n="uploadTitle">📤 Upload File</h3>
-                
                 <div class="upload-container">
                     <div class="drop-zone">
                         <input type="file" id="fileInput">
-                        <div class="file-label" id="fileNameDisplay" data-i18n="selectFilePrompt">
-                            Click here to select files
-                        </div>
+                        <div class="file-label" id="fileNameDisplay" data-i18n="selectFilePrompt">Select file...</div>
                     </div>
-
-                    <button class="btn-success" onclick="uploadFile()" data-i18n="uploadBtn">
-                        Upload to Server
-                    </button>
+                    <button class="btn-success" onclick="uploadFile()" data-i18n="uploadBtn">Upload</button>
                 </div>
 
-                <div id="progress-container" class="hidden">
-                    <div id="progress-bar"></div>
+                <div id="progress-container" class="hidden" style="margin-top: 15px;">
+                    <div class="progress-container-static">
+                        <div id="progress-bar" class="progress-bar-fill green" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-text" style="text-align: center; font-size: 12px; margin-top: 5px;"></p>
                 </div>
-                <p id="progress-text" class="hidden"></p>
             </div>
 
             <div class="table-container">

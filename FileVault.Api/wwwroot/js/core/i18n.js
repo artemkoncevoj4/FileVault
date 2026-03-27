@@ -73,6 +73,8 @@ export const translations = {
         toastRegSuccess: "Registration successful!",
         toastFileDeleted: "File deleted",
         toastFileRenamed: "File renamed!",
+        toastFileLocked: "The file is locked at a level lower than 4!",
+        toastFileUnlocked: "The file is unlocked for all!",
         toastDownloadFail: "Download error!",
         toastUserDeleted: "User deleted",
         toastLvlUpdated: "Access level updated!"
@@ -150,6 +152,8 @@ export const translations = {
         toastRegSuccess: "Регистрация успешна!",
         toastFileDeleted: "Файл удален",
         toastFileRenamed: "Файл переименован!",
+        toastFileLocked: "Файл заблокирован для уровня меньше 4!",
+        toastFileUnlocked: "Файл разблокирован для всех!",
         toastDownloadFail: "Ошибка скачивания",
         toastUserDeleted: "Пользователь удален",
         toastLvlUpdated: "Уровень доступа изменен!"
