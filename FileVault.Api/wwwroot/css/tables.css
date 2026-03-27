@@ -1,0 +1,56 @@
+/* wwwroot/css/tables.css */
+.files-table {
+    width: 100%;
+    border-collapse: separate; /* Изменили на separate, чтобы лучше контролировать отступы */
+    border-spacing: 0;
+    margin-top: 20px;
+}
+
+.files-table th {
+    padding: 20px 15px; /* Увеличили горизонтальный отступ между колонками */
+    font-size: 13px;
+    letter-spacing: 1px;
+    font-weight: 800;
+    color: var(--text-muted);
+    border-bottom: 2px solid #f8f9fb;
+    text-align: left;
+}
+
+.files-table th:last-child,
+.files-table td:last-child {
+    text-align: right;
+    padding-right: 0; /* Чтобы кнопки доходили до края панели */
+}
+
+.files-table td {
+    padding: 20px 15px; /* Тоже самое для ячеек */
+    font-size: 14px;
+    border-bottom: 1px solid #f8f9fb;
+    vertical-align: middle;
+}
+
+.files-table button {
+    margin-left: 8px;
+    padding: 8px 16px; /* Делаем кнопки в таблице чуть компактнее по высоте */
+}
+
+
+.files-table td:first-child {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.actions-cell {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.badge {
+    padding: 6px 12px;
+    background: #f0f4f8;
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--primary);
+    font-weight: 600;
+}

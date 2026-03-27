@@ -1,0 +1,32 @@
+/* wwwroot/css/base.css */
+:root {
+    --primary: #4361ee;
+    --primary-light: #4895ef;
+    --success: #4cc9f0;
+    --danger: #f72585;
+    --bg-main: #f8f9fd;
+    --card-bg: #ffffff;
+    --text-dark: #2b2d42;
+    --text-muted: #8d99ae;
+    --radius-lg: 20px;
+    --radius-md: 12px;
+    --shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-dark);
+    line-height: 1.6;
+    padding-top: 90px;
+}
+
+.hidden {
+    display: none !important;
+}
