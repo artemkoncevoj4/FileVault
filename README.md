@@ -57,8 +57,6 @@ FileVault/
 │   ├── app.db
 │   ├── appsettings.Development.json
 │   ├── appsettings.json
-│   ├── base
-│   │   └── html
 │   ├── Controllers
 │   │   ├── AdminController.cs
 │   │   ├── AuthController.cs
@@ -74,9 +72,7 @@ FileVault/
 │   ├── FileVault.Api.http
 │   ├── FileVault.Api.sln
 │   ├── Migrations
-│   │   ├── 20260321202547_Initial.cs
-│   │   ├── 20260321202547_Initial.Designer.cs
-│   │   └── ApplicationContextModelSnapshot.cs
+│   │   ├── _Initial.cs
 │   ├── Program.cs
 │   ├── Properties
 │   │   └── launchSettings.json
@@ -86,18 +82,14 @@ FileVault/
 │   │   └── PathSanitizer.cs
 │   └── wwwroot
 │       ├── css
-│       │   └── style.css
+│       │   └── *.css
 │       ├── index.html
 │       └── js
 │           ├── core
-│           │   ├── api.js
-│           │   ├── special_ui.js
-│           │   └── ui.js
+│           │   ├── *.js
 │           ├── main.js
 │           └── modules
-│               ├── admin.js
-│               ├── files.js
-│               └── user.js
+│               ├── *.js
 ├── FileVault.slnx
 ├── FileVault.Tests
 │   ├── FileVault.Tests.csproj
@@ -121,7 +113,11 @@ The `docker-compose.yml` file sets up the environment with services for the back
    ```bash
    docker compose up
    ```
-
+   Quick rebuild (without removing volumes and old images):
+   ```
+   docker compose up -d --build --force-recreate
+   ```
+   
 3. Access your application at `https://file-storage.myftp.org:8443/`.
 
 ### 7. Testing
