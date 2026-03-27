@@ -1,6 +1,7 @@
 import { showToast } from '../core/ui.js';
 import { loadFiles } from './files.js';
 import { loadAdminData } from './admin.js';
+import { t } from '../core/i18n.js';
 
 export async function login() {
     const login = document.getElementById('loginInput').value;
@@ -16,7 +17,7 @@ export async function login() {
         const data = await res.json();
         localStorage.setItem('vault_user', JSON.stringify(data.user));
         
-        showToast("Login successful!");
+        showToast(t('toastLoginSuccess')); // Используем t()
         
         // Call global checkAuth function defined in main.js
         if (window.checkAuth) window.checkAuth();
@@ -30,7 +31,7 @@ export async function login() {
         }
     } else {
         const error = await res.text();
-        showToast("Login failed: " + error, 'error');
+        showToast(t('toastLoginFail'), 'error');
     }
 }
 
@@ -59,9 +60,9 @@ export async function register() {
     });
 
     if (response.ok) {
-        showToast("Registration successful! You can now log in.");
+        showToast(t('toastRegSuccess'));
     } else {
         const error = await response.text();
-        showToast("Registration error: " + error, 'error');
+        showToast(t('toastRegError'), 'error');
     }
 }

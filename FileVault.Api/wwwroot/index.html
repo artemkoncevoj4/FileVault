@@ -8,67 +8,91 @@
 </head>
 <body>
 
-    <header class="main-header">
-        <div class="header-content">
+   <header class="main-header">
+        <div class="header-content" style="display: flex; justify-content: space-between; align-items: center;">
             <h1>☁️ FileVault Storage</h1>
-            <span class="author-tag">by artemkoncevoj4</span>
+            <div class="header-controls">
+                <span class="author-tag">by artemkoncevoj4</span>
+                <select id="lang-switch" onchange="changeLanguage(this.value)" style="margin-left: 15px; padding: 5px; border-radius: 5px;">
+                    <option value="en">ENG</option>
+                    <option value="ru">РУС</option>
+                </select>
+            </div>
         </div>
     </header>
 
     <main class="container">
         
         <div id="auth-panel" class="panel auth-card">
-            <h2>Sign In</h2>
-            <input type="text" id="loginInput" placeholder="Username">
-            <input type="password" id="passwordInput" placeholder="Password">
+            <h2 data-i18n="signInTitle">Sign In</h2>
+            <input type="text" id="loginInput" data-i18n-placeholder="loginPlaceholder" placeholder="Username">
+            <input type="password" id="passwordInput" data-i18n-placeholder="passPlaceholder" placeholder="Password">
             <div class="auth-buttons">
-                <button onclick="login()">Login</button>
-                <button onclick="register()" class="btn-success">Create Account</button>
+                <button onclick="login()" data-i18n="loginBtn">Login</button>
+                <button onclick="register()" class="btn-success" data-i18n="createAccBtn">Create Account</button>
             </div>
         </div>
 
         <div id="profile-panel" class="panel hidden">
             <div class="panel-header">
-                <h2 id="welcomeText">Welcome!</h2>
-                <button onclick="logout()" class="btn-danger">Logout</button>
+                <h2 id="welcomeText"></h2> <button onclick="logout()" class="btn-danger" data-i18n="logoutBtn">Logout</button>
             </div>
-            <p>Access Level: <b id="userLevel"></b></p>
+            <p><span data-i18n="accessLevelLabel">Access Level:</span> <b id="userLevel"></b></p>
         </div>
 
         <div id="files-panel" class="panel hidden">
-            <h2>📂 My Files</h2>
+            <h2 data-i18n="filesTitle">📂 My Files</h2>
             
-            <div id="upload-section" class="upload-zone hidden">
-                <p class="success-text">✓ File upload available (Level 3+)</p>
+            <div id="upload-section" class="panel hidden">
+                <h3 data-i18n="uploadTitle">📤 Upload File</h3>
                 
-                <div class="mobile-input-container">
-                    <input type="file" id="fileInput" name="files" accept="*/*" multiple>
-                    
-                    <label class="file-label">
-                        <span class="file-icon">📁</span> 
-                        <span class="file-text">Click here to select files</span>
-                    </label>
+                <div class="upload-container">
+                    <div class="drop-zone">
+                        <input type="file" id="fileInput">
+                        <div class="file-label" id="fileNameDisplay" data-i18n="selectFilePrompt">
+                            Click here to select files
+                        </div>
+                    </div>
+
+                    <button class="btn-success" onclick="uploadFile()" data-i18n="uploadBtn">
+                        Upload to Server
+                    </button>
                 </div>
 
-                <div id="fileNameDisplay" class="file-name-hint">No file selected</div>
-                
-                <button onclick="uploadFile()" class="upload-btn">Upload to Server</button>
-                
-                <div id="progress-container" class="progress-wrapper hidden">
-                    <div id="progress-bar" class="progress-bar"></div>
+                <div id="progress-container" class="hidden">
+                    <div id="progress-bar"></div>
                 </div>
-                <small id="progress-text" class="hidden text-center">0%</small>
+                <p id="progress-text" class="hidden"></p>
             </div>
-            
-            <hr class="divider">
-            <div id="file-list"><p>Loading file list...</p></div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n="thFileName">Name</th>
+                            <th data-i18n="thSize">Size</th>
+                            <th data-i18n="thUser">Owner</th>
+                            <th data-i18n="thAction">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="filesTable">
+                        </tbody>
+                </table>
+            </div>
         </div>
 
         <div id="admin-panel" class="panel admin-card hidden">
-            <h2>👑 Admin Center</h2>
-            <div class="table-responsive">
+            <h2 data-i18n="adminTitle">👑 Admin Center</h2>
+            <div class="table-container">
                 <table>
-                    <thead><tr><th>ID</th><th>Username</th><th>Level</th><th>Action</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th data-i18n="thId">ID</th>
+                            <th data-i18n="thUser">Username</th>
+                            <th data-i18n="thLevel">Level</th>
+                            <th data-i18n="thAction">Action</th>
+                        </tr>
+                    </thead>
                     <tbody id="usersTable"></tbody>
                 </table>
             </div>
@@ -77,37 +101,35 @@
         <footer class="main-footer">
             <p>© 2026 Created by <b>artemkoncevoj4</b></p>
             <div class="footer-links">
-                <a href="#" onclick="showTerms()">Terms of Service</a> | 
-                <a href="#" onclick="showPrivacy()">Privacy Policy</a>
+                <a href="#" onclick="showTerms()" data-i18n="tosLink">Terms of Service</a> | 
+                <a href="#" onclick="showPrivacy()" data-i18n="privacyLink">Privacy Policy</a>
             </div>
         </footer>
-
     </main>
+
+    <div id="rename-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 class="modal-title" data-i18n="renameTitle">✏️ Rename</h3>
+            <p class="modal-subtitle"><span data-i18n="renameOldName">Current name:</span> <b id="renameOldNameDisplay"></b></p>
+            <input type="text" id="renameInput" data-i18n-placeholder="renameInputPlaceholder" placeholder="New name">
+            <div class="modal-actions dual-buttons">
+                <button onclick="closeRenameModal()" class="btn-secondary" data-i18n="cancelBtn">Cancel</button>
+                <button onclick="confirmRename()" class="btn-success" data-i18n="saveBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
 
     <div id="legal-modal" class="modal-overlay hidden">
         <div class="modal-card">
             <h2 id="legal-title" class="modal-title"></h2>
             <div id="legal-content" class="modal-text"></div>
             <div class="modal-actions">
-                <button onclick="document.getElementById('legal-modal').classList.add('hidden')">I Understand</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="rename-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <h3 class="modal-title">✏️ Rename</h3>
-            <p class="modal-subtitle">Current name: <b id="renameOldNameDisplay"></b></p>
-            <input type="text" id="renameInput" placeholder="New name">
-            <div class="modal-actions dual-buttons">
-                <button onclick="closeRenameModal()" class="btn-secondary">Cancel</button>
-                <button onclick="confirmRename()" class="btn-success">Save Changes</button>
+                <button onclick="document.getElementById('legal-modal').classList.add('hidden')" data-i18n="modalUnderstand">I Understand</button>
             </div>
         </div>
     </div>
 
     <div id="toast-container" class="toast-container"></div>
-
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

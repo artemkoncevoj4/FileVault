@@ -1,4 +1,5 @@
 import {showToast} from './ui.js';
+import { t } from '../core/i18n.js'; // Используем только помощник t
 export async function apiRequest(url, method = 'GET', body = null) {
     const options = { 
         method, 
@@ -17,7 +18,7 @@ export async function apiRequest(url, method = 'GET', body = null) {
         }
         return response;
     } catch (e) {
-        showToast("Network error", "error");
+        showToast(t('toastNetError'), "error")
         return { ok: false };
     }
 }
