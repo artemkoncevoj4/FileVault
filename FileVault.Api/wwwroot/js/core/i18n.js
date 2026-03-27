@@ -77,7 +77,12 @@ export const translations = {
         toastFileUnlocked: "The file is unlocked for all!",
         toastDownloadFail: "Download error!",
         toastUserDeleted: "User deleted",
-        toastLvlUpdated: "Access level updated!"
+        toastLvlUpdated: "Access level updated!",
+
+        tosContent: `TERMS OF SERVICE (PRIVATE RESEARCH PROJECT)\n\n1. STATUS: This resource is a private, non-commercial research project. It is not a public service provider or a registered data operator.\n2. LIABILITY: The service is provided "AS IS". The owner (artemkoncevoj4) bears NO RESPONSIBILITY for data loss, service interruptions, or the nature of user-uploaded content.\n3. USER RESPONSIBILITY: Users are solely responsible for the legality of their files. Uploading illegal content or malware is strictly prohibited.\n4. NO GUARANTEES: Storage is not permanent. The administrator reserves the right to delete any data or terminate the service at any time without notice.\n5. JURISDICTION: By using this private sandbox, you agree that you do so at your own risk and waive any legal claims against the owner.`,
+        privacyContent: `PRIVACY & DATA POLICY\n\n1. ANONYMITY: We do not collect or process personal identifiable information (PII) such as real names, IDs, or phone numbers.\n2. TECHNICAL DATA: We only store a "Username" (alias) and "Password Hash" for authentication purposes.\n3. PROHIBITED DATA: Users are strictly forbidden from uploading files containing personal data of third parties. Responsibility for such actions lies entirely with the user.\n4. DELETION: You can stop using the service at any time. The owner may perform server cleanups, resulting in the deletion of all stored data.`,
+        tosTitle: "Terms of Service",
+        privacyTitle: "Privacy Policy"
     },
     ru: {
         // --- Auth Panel ---
@@ -156,7 +161,12 @@ export const translations = {
         toastFileUnlocked: "Файл разблокирован для всех!",
         toastDownloadFail: "Ошибка скачивания",
         toastUserDeleted: "Пользователь удален",
-        toastLvlUpdated: "Уровень доступа изменен!"
+        toastLvlUpdated: "Уровень доступа изменен!",
+
+        tosContent: `УСЛОВИЯ ИСПОЛЬЗОВАНИЯ (ЧАСТНЫЙ ИССЛЕДОВАТЕЛЬСКИЙ ПРОЕКТ)\n\n1. СТАТУС: Данный ресурс является частным некоммерческим исследовательским проектом. Он не является публичным сервисом или оператором персональных данных.\n2. ОТВЕТСТВЕННОСТЬ: Сервис предоставляется по принципу «КАК ЕСТЬ». Владелец (artemkoncevoj4) НЕ НЕСЕТ ОТВЕТСТВЕННОСТИ за потерю данных или характер контента, загружаемого пользователями.\n3. ОТВЕТСТВЕННОСТЬ ПОЛЬЗОВАТЕЛЯ: Пользователь единолично отвечает за законность своих файлов. Загрузка запрещенного контента или вредоносного ПО строго запрещена.\n4. ОТСУТСТВИЕ ГАРАНТИЙ: Хранение не является постоянным. Администратор вправе удалить любые данные или прекратить работу сервиса в любое время без уведомления.\n5. СОГЛАСИЕ: Используя эту площадку, вы подтверждаете, что действуете на свой страх и риск и отказываетесь от любых юридических претензий к владельцу.`,
+        privacyContent: `ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ\n\n1. АНОНИМНОСТЬ: Мы не собираем и не обрабатываем персональные данные (ФИО, паспорта, телефоны).\n2. ТЕХНИЧЕСКИЕ ДАННЫЕ: Хранится только «Логин» (псевдоним) и «Хэш пароля» для обеспечения доступа.\n3. ЗАПРЕЩЕННЫЕ ДАННЫЕ: Пользователям категорически запрещено загружать файлы, содержащие персональные данные третьих лиц. Ответственность за это лежит на пользователе.\n4. УДАЛЕНИЕ: Вы можете прекратить использование сервиса в любой момент. Владелец может проводить очистку сервера, что приведет к удалению всех данных.`,
+        tosTitle: "Условия использования",
+        privacyTitle: "Политика конфиденциальности"
     }
 };
 

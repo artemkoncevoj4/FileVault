@@ -308,7 +308,14 @@ th, td {
 
 .modal-title { color: #007bff; margin-bottom: 15px; text-align: center; }
 .modal-subtitle { color: #666; font-size: 14px; margin-bottom: 20px; word-break: break-all; }
-.modal-text { font-size: 14px; line-height: 1.6; color: #444; white-space: pre-wrap; }
+.modal-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #444;
+    white-space: pre-wrap; /* Это заставит \n работать как перенос строки */
+    max-height: 400px;
+    overflow-y: auto;
+}
 
 .modal-actions { margin-top: 25px; display: flex; justify-content: center; }
 .modal-actions button { min-width: 150px; }
