@@ -25,7 +25,7 @@ export const translations = {
         selectedFile: "Selected file",
 
         // --- File Item Buttons/Labels ---
-        ownerLabel: "Owner",
+        ownerLabel: "Author",
         youLabel: "(You)",
         downloadBtn: "Download",
         lockBtn: "Lock",
@@ -110,7 +110,7 @@ export const translations = {
         selectedFile: "Выбран файл",
 
         // --- File Item Buttons/Labels ---
-        ownerLabel: "Владелец",
+        ownerLabel: "Автор",
         youLabel: "(Вы)",
         downloadBtn: "Скачать",
         lockBtn: "Закрыть",

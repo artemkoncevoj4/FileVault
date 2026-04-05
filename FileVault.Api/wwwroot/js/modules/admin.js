@@ -4,7 +4,7 @@ import { t } from "../core/i18n.js"; // Наш главный помощник
 
 export async function deleteUser(userId) {
     // Используем общее подтверждение удаления из словаря
-    if (!confirm(t('confirmDelete'))) return;
+    if (!confirm(t('confirmDelete'))) return; //TODO - В будущем можно сделать кастомное модальное окно для подтверждений, но пока так
 
     const res = await apiRequest(`/api/admin/users/${userId}`, 'DELETE');
     if (res.ok) {

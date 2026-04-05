@@ -14,7 +14,7 @@ export async function apiRequest(url, method = 'GET', body = null) {
             // Instead of direct logout, clear storage and reload
             localStorage.removeItem('vault_user');
             window.location.reload(); 
-            return { ok: false };
+            return { ok: false }; //! Critical: We return here to prevent further code execution after reload
         }
         return response;
     } catch (e) {
