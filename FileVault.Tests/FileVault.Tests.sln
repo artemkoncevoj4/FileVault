@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileVault.Tests", "FileVault.Tests.csproj", "{767E78EC-DBC5-383C-7E3E-611BF1176428}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{767E78EC-DBC5-383C-7E3E-611BF1176428}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{767E78EC-DBC5-383C-7E3E-611BF1176428}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{767E78EC-DBC5-383C-7E3E-611BF1176428}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{767E78EC-DBC5-383C-7E3E-611BF1176428}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A333EC43-DA4F-4A96-A33F-F05E0490D166}
+	EndGlobalSection
+EndGlobal
