@@ -33,20 +33,18 @@ public class AdminController : ControllerBase
         var user = await _db.Users.FindAsync(id);
         if (user == null) return NotFound();
 
-        user.AccessLevel = Math.Clamp(newLevel, 1, 5);
+        user.AccessLevel = Math.Clamp(newLevel, UserLevels.Default, UserLevels.Admin);
         await _db.SaveChangesAsync();
         return Ok();
     }
     [HttpDelete("users/{id}")]
-    [Authorize]
     public async Task<IActionResult> DeleteUser(int id)
     {
         
-        if (User.FindFirst("AccessLevel")?.Value != "5") 
-            return Forbid();
+        if (!IsAdmin()) return Forbid();
 
         var user = await _db.Users.FindAsync(id);
-        if (user == null) return NotFound("User not found");
+        if (user == null) return NotFound();
 
         
         var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -57,5 +55,5 @@ public class AdminController : ControllerBase
         return Ok("User deleted");
     }
     private bool IsAdmin() => 
-        User.FindFirst("AccessLevel")?.Value == "5";
+        User.FindFirst("AccessLevel")?.Value == Convert.ToString(UserLevels.Admin);
 }

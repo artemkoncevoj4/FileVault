@@ -8,20 +8,19 @@ public class GlobalExceptionHandler : IExceptionHandler
     {
         var (statusCode, message) = exception switch
         {
-            // Проверка на нехватку места на диске (Код ошибки 0x80070070)
-            IOException ioEx when ioEx.HResult == unchecked((int)0x80070070) => 
-                (StatusCodes.Status507InsufficientStorage, "На сервере закончилось свободное место."),
+            IOException ioEx when ioEx.Message.Contains("No space left on device") || ioEx.HResult == unchecked((int)0x80070070) =>
+                (StatusCodes.Status507InsufficientStorage, "No space left on device"),
             
             UnauthorizedAccessException => 
-                (StatusCodes.Status403Forbidden, "Доступ запрещен: нарушение безопасности пути."),
+                (StatusCodes.Status403Forbidden, "Access denied: path security violation."),
                 
-            _ => (StatusCodes.Status500InternalServerError, "Произошла внутренняя ошибка сервера.")
+            _ => (StatusCodes.Status500InternalServerError, "An internal server error occurred.")
         };
 
         var problemDetails = new ProblemDetails
         {
             Status = statusCode,
-            Title = "Ошибка выполнения запроса",
+            Title = "Error executing request",
             Detail = message
         };
 

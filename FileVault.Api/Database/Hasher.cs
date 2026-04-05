@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace FileVault.Api.Database;
 
 public interface IPasswordHasher

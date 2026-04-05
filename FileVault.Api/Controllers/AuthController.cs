@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
         var user = new User {
             Login = req.Login,
             PasswordHash = _hasher.Hash(req.Password),
-            AccessLevel = 1 // По умолчанию уровень 1
+            AccessLevel = UserLevels.Default
         };
 
         _db.Users.Add(user);

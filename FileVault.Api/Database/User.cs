@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Net.NetworkInformation;
 namespace FileVault.Api.Database;
 
 public class User
@@ -10,7 +9,7 @@ public class User
     public string Login { get; set; } = default!;
     [Required]
     public string PasswordHash { get; set; } = default!;
-    [Required, Range(1, 5)]
+    [Required, Range(UserLevels.Default, UserLevels.Admin)]
     public int AccessLevel { get; set; }
 
 }

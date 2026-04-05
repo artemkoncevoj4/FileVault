@@ -90,7 +90,7 @@ using (var scope = app.Services.CreateScope())
         { 
             Login = adminLogin, 
             PasswordHash = hasher.Hash(adminPassword),
-            AccessLevel = 5 
+            AccessLevel = UserLevels.Admin 
         };
         db.Users.Add(admin);
         db.SaveChanges();
@@ -106,7 +106,6 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/error"); 
     app.UseHsts(); 
 }
 

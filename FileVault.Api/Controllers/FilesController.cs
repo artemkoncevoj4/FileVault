@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using FileVault.Api.Utils;
 using FileVault.Api.Database;
 using System.Security.Cryptography;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
+using System.Security.Claims;
+
 namespace FileVault.Api.Controllers;
 
 [ApiController]
@@ -24,47 +24,10 @@ public class FilesController : ControllerBase
     }
 
     [HttpPut("lock/{id}")]
-public async Task<IActionResult> LockFile(int id)
-{
-    try 
-        {
-            var userLevel = GetUserLevel();
-            if (userLevel < 4) return Forbid("Insufficient access level");
-
-            //Ищем файл в базе по уникальному ID
-            var fileRecord = await _db.Files.FindAsync(id);
-
-            //Если нет
-            if(fileRecord == null) return NotFound("File not found");
-
-            //Проверка прав
-            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userIdString, out int currentUserId);
-
-            if(userLevel < 5 && fileRecord.UserId != currentUserId)
-            {
-                return StatusCode(403, "You can only unlock your own files");
-            }
-            
-            fileRecord.IsLocked = true;
-
-            await _db.SaveChangesAsync();
-
-            return Ok(new {message = "File successfully unlocked", id = fileRecord.Id});
-        }
-    catch (Exception ex) 
-        { 
-            return BadRequest(ex.Message); 
-        }
-}
-
-[HttpPut("unlock/{id}")]
-public async Task<IActionResult> UnlockFile(int id)
-{
-    try 
+    public async Task<IActionResult> LockFile(int id)
     {
         var userLevel = GetUserLevel();
-        if (userLevel < 4) return Forbid("Insufficient access level");
+        if (userLevel < UserLevels.Moderator) return Forbid("Insufficient access level");
 
         //Ищем файл в базе по уникальному ID
         var fileRecord = await _db.Files.FindAsync(id);
@@ -73,12 +36,43 @@ public async Task<IActionResult> UnlockFile(int id)
         if(fileRecord == null) return NotFound("File not found");
 
         //Проверка прав
-        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        int.TryParse(userIdString, out int currentUserId);
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized(new { error = "Invalid user identifier" });
 
-        if(userLevel < 5 && fileRecord.UserId != currentUserId)
+        if (userLevel < UserLevels.Admin && fileRecord.UserId != currentUserId.Value)
         {
-            return StatusCode(403, "You can only unlock your own files");
+            return Forbid("You can only lock your own files");
+        }
+                
+        fileRecord.IsLocked = true;
+
+        await _db.SaveChangesAsync();
+
+        return Ok(new {message = "File successfully locked", id = fileRecord.Id});
+    }
+
+    [HttpPut("unlock/{id}")]
+    public async Task<IActionResult> UnlockFile(int id)
+    {
+        var userLevel = GetUserLevel();
+        if (userLevel < UserLevels.Moderator) return Forbid("Insufficient access level");
+
+        //Ищем файл в базе по уникальному ID
+        var fileRecord = await _db.Files.FindAsync(id);
+
+        //Если нет
+        if(fileRecord == null) return NotFound("File not found");
+
+        //Проверка прав
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized(new { error = "Invalid user identifier" });
+
+
+        if (userLevel < UserLevels.Admin && fileRecord.UserId != currentUserId.Value)
+        {
+            return Forbid("You can only unlock your own files");
         }
         
         fileRecord.IsLocked = false;
@@ -87,21 +81,20 @@ public async Task<IActionResult> UnlockFile(int id)
 
         return Ok(new {message = "File successfully unlocked", id = fileRecord.Id});
     }
-    catch (Exception ex) 
-    { 
-        return BadRequest(ex.Message); 
-    }
-}
 
-[HttpPost("upload")]
+    [HttpPost("upload")]
     public async Task<IActionResult> UploadFile(IFormFile file)
     {
-        var userLevel = GetUserLevel();
-        if (userLevel < 3) return Forbid("Upload is available from level 3");
-        if (file == null || file.Length == 0) return BadRequest("No file selected");
+        var userLevel = GetUserLevel();  // ← исправлено: получаем уровень доступа
+        if (userLevel < UserLevels.Uploader) 
+            return Forbid("Upload is available from level 3");
+            
+        if (file == null || file.Length == 0) 
+            return BadRequest("No file selected");
 
-        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        if(!int.TryParse(userIdString, out int userId)) return Unauthorized();
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null) 
+            return Unauthorized("Invalid user identifier");
 
         using var sha256 = SHA256.Create();
         using var stream = file.OpenReadStream();
@@ -109,7 +102,7 @@ public async Task<IActionResult> UnlockFile(int id)
         var fileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
 
         var physicalPath = Path.Combine(_storagePath, fileHash);
-        if(!System.IO.File.Exists(physicalPath))
+        if (!System.IO.File.Exists(physicalPath))
         {
             stream.Position = 0;
             using var fileStream = new FileStream(physicalPath, FileMode.Create);
@@ -118,31 +111,33 @@ public async Task<IActionResult> UnlockFile(int id)
 
         var fileRecord = new Files
         {
-          UserId = userId,
-          Hash = fileHash,
-          VirtualName = Path.GetFileName(file.FileName),
-          Size = file.Length,
-          IsLocked = false 
+            UserId = currentUserId.Value,  // ← исправлено: используем Value
+            Hash = fileHash,
+            VirtualName = Path.GetFileName(file.FileName),
+            Size = file.Length,
+            IsLocked = false
         };
 
         _db.Files.Add(fileRecord);
         await _db.SaveChangesAsync();
-        return Ok(new {message = "File uploaded successfully", id = fileRecord.Id});
+        return Ok(new { message = "File uploaded successfully", id = fileRecord.Id });
     }
 
     [HttpGet("download/{id}")]
     public async Task<IActionResult> DownloadFile(int id)
     {
         var userLevel = GetUserLevel();
-        if (userLevel < 2) return Forbid("Level 2 required to download");
+        if (userLevel < UserLevels.BasicDownload) return Forbid("Level 2 required to download");
 
         var fileRecord = await _db.Files.FindAsync(id);
         if (fileRecord == null) return NotFound("File not found in database");
 
-        var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var userId = GetCurrentUserId();
+        if (userId == null) 
+            return Unauthorized("Invalid user identifier");
 
-        // Проверка блокировки
-        if (fileRecord.IsLocked && userLevel < 4 && fileRecord.UserId != userId) return Forbid("File is locked");
+        if (fileRecord.IsLocked && userLevel < UserLevels.Moderator && fileRecord.UserId != userId.Value) 
+            return Forbid("File is locked");
 
         var physicalPath = Path.Combine(_storagePath, fileRecord.Hash);
         if (!System.IO.File.Exists(physicalPath)) return NotFound("Physical file is missing");
@@ -158,9 +153,12 @@ public async Task<IActionResult> UnlockFile(int id)
         if(fileRecord == null) return NotFound();
 
         var userLevel = GetUserLevel();
-        var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
-        
-        if(userLevel < 5 && fileRecord.UserId != userId) return Forbid("No permission to delete");
+        var userId = GetCurrentUserId();
+        if (userId == null) 
+            return Unauthorized("Invalid user identifier");
+
+        if (userLevel < UserLevels.Admin && fileRecord.UserId != userId.Value) 
+            return Forbid("No permission to delete");
 
         _db.Files.Remove(fileRecord);
         await _db.SaveChangesAsync();
@@ -180,8 +178,12 @@ public async Task<IActionResult> UnlockFile(int id)
         var fileRecord = await _db.Files.FindAsync(req.Id);
         if(fileRecord == null) return NotFound();
 
-        var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
-        if(GetUserLevel() < 5 && fileRecord.UserId != userId) return Forbid();
+        var userId = GetCurrentUserId();
+        if (userId == null) 
+            return Unauthorized("Invalid user identifier");
+
+        if (GetUserLevel() < UserLevels.Admin && fileRecord.UserId != userId.Value) 
+            return Forbid("You can only rename your own files");
 
         if(string.IsNullOrWhiteSpace(req.NewName)) return BadRequest("Name is empty");
 
@@ -191,20 +193,21 @@ public async Task<IActionResult> UnlockFile(int id)
     }
 
     private int GetUserLevel() => 
-        int.TryParse(User.FindFirst("AccessLevel")?.Value, out var lvl) ? lvl : 1;
+        int.TryParse(User.FindFirst("AccessLevel")?.Value, out var lvl) ? lvl : UserLevels.Default;
 
     [HttpGet("list")]
     public async Task<IActionResult> GetFilesList()
     {
         var userLevel = GetUserLevel();
-        var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        int.TryParse(userIdString, out int currentUserId);
+        var currentUserId = GetCurrentUserId();
+        if (currentUserId == null)
+            return Unauthorized("Invalid user identifier");
 
         var query = _db.Files.AsQueryable();
 
-        if(userLevel < 4)
+        if (userLevel < UserLevels.Moderator)
         {
-            query = query.Where(f => !f.IsLocked || f.UserId == currentUserId);
+            query = query.Where(f => !f.IsLocked || f.UserId == currentUserId.Value);
         }
 
         var files = await query.Select(f => new
@@ -223,7 +226,7 @@ public async Task<IActionResult> UnlockFile(int id)
     public IActionResult GetStorageStats()
     {
         var userLevel = GetUserLevel();
-        if (userLevel < 3) return Forbid();
+        if (userLevel < UserLevels.Uploader) return Forbid();
 
         try
         {
@@ -246,7 +249,7 @@ public async Task<IActionResult> UnlockFile(int id)
         }
         catch (Exception ex)
         {
-            return BadRequest("Ошибка чтения диска: " + ex.Message);
+            return BadRequest("Disk read error: " + ex.Message);
         }
     }
 
@@ -254,5 +257,12 @@ public async Task<IActionResult> UnlockFile(int id)
     {
         public int Id { get; set; }
         public string NewName { get; set; } = "";
+    }
+    private int? GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdClaim, out var userId))
+            return userId;
+        return null;
     }
 }
