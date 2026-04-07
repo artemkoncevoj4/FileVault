@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 namespace FileVault.Api.Database;
 
 public class User
@@ -11,6 +12,8 @@ public class User
     public string PasswordHash { get; set; } = default!;
     [Required, Range(UserLevels.Default, UserLevels.Admin)]
     public int AccessLevel { get; set; }
+    public ICollection<Files> Files { get; set; } = new List<Files>();
+
 
 }
 

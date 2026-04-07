@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using FileVault.Api.Database;
-
 namespace FileVault.Api.Controllers;
 
 [ApiController]
@@ -40,18 +39,37 @@ public class AdminController : ControllerBase
     [HttpDelete("users/{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        
         if (!IsAdmin()) return Forbid();
 
-        var user = await _db.Users.FindAsync(id);
+        var user = await _db.Users
+            .Include(u => u.Files)
+            .FirstOrDefaultAsync(u => u.Id == id);
         if (user == null) return NotFound();
 
         
         var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (currentUserId == id.ToString()) return BadRequest("You cannot delete your own account");
 
+        var fileHashes = user.Files.Select(f => f.Hash).Distinct().ToList();
+
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();
+
+        var storagePath = Path.Combine(Directory.GetCurrentDirectory(), "Storage");
+        foreach (var hash in fileHashes)
+        {
+            bool stillUsed = await _db.Files.AnyAsync(f => f.Hash == hash);
+            if (!stillUsed)
+            {
+                var physicalPath = Path.Combine(storagePath, hash);
+                if(System.IO.File.Exists(physicalPath))
+                {
+                    try { System.IO.File.Delete(physicalPath); }
+                    catch (Exception ex) { Console.WriteLine($"Error: {ex}");}
+                }
+            }
+        } 
+
         return Ok("User deleted");
     }
     private bool IsAdmin() => 

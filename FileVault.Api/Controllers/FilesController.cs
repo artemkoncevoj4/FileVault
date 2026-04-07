@@ -5,6 +5,7 @@ using FileVault.Api.Database;
 using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace FileVault.Api.Controllers;
 
@@ -83,9 +84,9 @@ public class FilesController : ControllerBase
     }
 
     [HttpPost("upload")]
-    public async Task<IActionResult> UploadFile(IFormFile file)
+    public async Task<IActionResult> UploadFile(IFormFile file, CancellationToken cancellationToken)
     {
-        var userLevel = GetUserLevel();  // ← исправлено: получаем уровень доступа
+        var userLevel = GetUserLevel();
         if (userLevel < UserLevels.Uploader) 
             return Forbid("Upload is available from level 3");
             
@@ -96,31 +97,51 @@ public class FilesController : ControllerBase
         if (currentUserId == null) 
             return Unauthorized("Invalid user identifier");
 
-        using var sha256 = SHA256.Create();
-        using var stream = file.OpenReadStream();
-        var hashBytes = await sha256.ComputeHashAsync(stream);
-        var fileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, cancellationToken);
+        ms.Position = 0;
 
+        using var sha256 = SHA256.Create();
+        var hashBytes = sha256.ComputeHash(ms);
+        var fileHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
         var physicalPath = Path.Combine(_storagePath, fileHash);
-        if (!System.IO.File.Exists(physicalPath))
-        {
-            stream.Position = 0;
-            using var fileStream = new FileStream(physicalPath, FileMode.Create);
-            await stream.CopyToAsync(fileStream);
-        }
+        bool fileExistsPhysically = System.IO.File.Exists(physicalPath);
 
         var fileRecord = new Files
         {
-            UserId = currentUserId.Value,  // ← исправлено: используем Value
-            Hash = fileHash,
-            VirtualName = Path.GetFileName(file.FileName),
-            Size = file.Length,
-            IsLocked = false
+          UserId = currentUserId.Value,
+          Hash = fileHash,
+          VirtualName = Path.GetFileName(file.FileName),
+          Size = file.Length,
+          IsLocked = false  
         };
-
         _db.Files.Add(fileRecord);
-        await _db.SaveChangesAsync();
-        return Ok(new { message = "File uploaded successfully", id = fileRecord.Id });
+        await _db.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            if(!fileExistsPhysically)
+            {
+                ms.Position = 0;
+                using var fileStream = new FileStream(physicalPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, useAsync: true);
+                await ms.CopyToAsync(fileStream, cancellationToken);
+            }
+            return Ok(new {message = "File upload successfully", id = fileRecord.Id});
+        }
+        catch (Exception ex) when (ex is OperationCanceledException)
+        {
+            _db.Files.Remove(fileRecord);
+            await _db.SaveChangesAsync(cancellationToken);
+            return BadRequest("Upload cancelled");
+        }
+        catch (Exception ex)
+        {
+            _db.Files.Remove(fileRecord);
+            await _db.SaveChangesAsync(cancellationToken);
+            Console.WriteLine($"Error: {ex}");
+            return StatusCode(500, "Failed to save physical file");
+        }
+
     }
 
     [HttpGet("download/{id}")]
