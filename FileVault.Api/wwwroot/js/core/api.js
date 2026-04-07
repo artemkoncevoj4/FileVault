@@ -10,15 +10,24 @@ export async function apiRequest(url, method = 'GET', body = null) {
 
     try {
         const response = await fetch(url, options);
+
         if (response.status === 401) {
             // Instead of direct logout, clear storage and reload
             localStorage.removeItem('vault_user');
-            window.location.reload(); 
-            return { ok: false }; //! Critical: We return here to prevent further code execution after reload
+            window.location.href = '/';
+            throw new Error('Unauthorized');
         }
+
+        if (!response.ok) {
+            const errorText = (await response.text()).catch(() => 'Request failed');
+            throw new Error(`${response.status}: ${errorText}`);
+        }
+
         return response;
     } catch (e) {
-        showToast(t('toastNetError'), "error")
-        return { ok: false };
+        if(e.message !== 'Unauthorized') {
+            showToast(t('toastNetError') || 'Networkerror', 'error');
+        }
+        throw e;
     }
 }

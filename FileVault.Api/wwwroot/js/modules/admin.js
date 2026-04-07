@@ -23,7 +23,7 @@ export async function changeLevel(userId) {
     if (res.ok) {
         showToast(t('toastLvlUpdated'));
     } else {
-        showToast(t('toastNetError'), 'error');
+        showToast(t('toastRegError'), 'error');
     }
 }
 
