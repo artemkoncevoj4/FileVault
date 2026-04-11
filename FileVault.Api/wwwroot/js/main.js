@@ -1,7 +1,7 @@
 import { login, logout, register } from './modules/user.js';
 import { 
     loadFiles, 
-    loadStorageStats, // Импортируем из files.js
+    loadStorageStats,
     uploadFile, 
     downloadFile,
     lockFile, 
@@ -14,32 +14,102 @@ import {
 import { loadAdminData, changeLevel, deleteUser } from './modules/admin.js';
 import { showTerms, showPrivacy } from './core/special_ui.js';
 import { t, applyTranslations, changeLanguage } from './core/i18n.js';
+import { initConfirmModal } from './core/ui.js';
+initConfirmModal();
 
-// Прокидываем функции в глобальную область видимости
-window.login = login;
-window.logout = logout;
-window.register = register;
-window.showTerms = showTerms;
-window.showPrivacy = showPrivacy;
-window.uploadFile = uploadFile;
-window.closeRenameModal = closeRenameModal;
-window.confirmRename = confirmRename;
-window.changeLevel = changeLevel;
-window.deleteUser = deleteUser;
+// Глобальные функции, которые вызываются из HTML (например, changeLanguage, login, register)
+// Но лучше избегать onclick в HTML, поэтому перенаправим через делегирование. Однако для простоты оставим пока.
 window.changeLanguage = changeLanguage;
 
-window.safeAction = (action, id, name) => {
-    if (action === 'download') downloadFile(id);
-    if (action === 'lock') lockFile(id);
-    if (action === 'unlock') unlockFile(id);
-    if (action === 'delete') deleteFileOnServer(id);
-    if (action === 'rename') renamePrompt(id, name);
-};
+
+// Обработчик кликов с делегированием для динамических элементов
+document.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+    const action = target.getAttribute('data-action');
+    const id = target.getAttribute('data-id');
+    const name = target.getAttribute('data-name');
+
+    switch (action) {
+        case 'download':
+            downloadFile(parseInt(id));
+            break;
+        case 'lock':
+            lockFile(parseInt(id));
+            break;
+        case 'unlock':
+            unlockFile(parseInt(id));
+            break;
+        case 'delete':
+            deleteFileOnServer(parseInt(id));
+            break;
+        case 'rename':
+            renamePrompt(parseInt(id), name);
+            break;
+        case 'change-level':
+            changeLevel(parseInt(id));
+            break;
+        case 'delete-user':
+            deleteUser(parseInt(id));
+            break;
+        case 'login':
+            login();
+            break;
+        case 'register':
+            register();
+            break;
+        case 'logout':
+            logout();
+            break;
+        case 'upload':
+            uploadFile();
+            break;
+        case 'close-rename':
+            closeRenameModal();
+            break;
+        case 'confirm-rename':
+            confirmRename();
+            break;
+        case 'show-terms':
+            showTerms();
+            break;
+        case 'show-privacy':
+            showPrivacy();
+            break;
+        case 'close-legal':
+            document.getElementById('legal-modal')?.classList.add('hidden');
+            break;
+
+    }
+});
+
+// Обработчик для закрытия модалки по Escape
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.querySelector('.modal-overlay:not(.hidden), #rename-modal:not(.hidden)');
+        if (modal && modal.id === 'rename-modal') {
+            closeRenameModal();
+        }
+        // можно добавить другие модалки
+    }
+});
+
+// Блокировка прокрутки фона (CSS класс)
+// Добавим в base.css:
+// body.modal-open { overflow: hidden; }
 
 window.checkAuth = function() {
-    const userData = localStorage.getItem('vault_user');
-    if (userData) {
-        const user = JSON.parse(userData);
+    const userDataRaw = localStorage.getItem('vault_user');
+    let user = null;
+    try {
+        user = userDataRaw ? JSON.parse(userDataRaw) : null;
+    } catch (e) {
+        console.error('Invalid localStorage data', e);
+        localStorage.removeItem('vault_user');
+        user = null;
+    }
+
+    if (user) {
         document.getElementById('auth-panel').classList.add('hidden');
         document.getElementById('profile-panel').classList.remove('hidden');
         document.getElementById('files-panel').classList.remove('hidden');
@@ -54,10 +124,8 @@ window.checkAuth = function() {
             loadAdminData();
         }
         
-        // Для уровня 3+ показываем загрузку и шкалу
         if (user.accessLevel >= 3) {
             document.getElementById('upload-section').classList.remove('hidden');
-            // Вызываем импортированную функцию из files.js
             loadStorageStats(); 
         }
         loadFiles();
@@ -65,6 +133,8 @@ window.checkAuth = function() {
         document.getElementById('auth-panel').classList.remove('hidden');
         document.getElementById('profile-panel').classList.add('hidden');
         document.getElementById('files-panel').classList.add('hidden');
+        document.getElementById('admin-panel')?.classList.add('hidden');
+        document.getElementById('upload-section')?.classList.add('hidden');
     }
 };
 
@@ -78,11 +148,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const display = document.getElementById('fileNameDisplay');
             if (fileInput.files[0]) {
                 display.innerText = `${t('selectedFile')}: ${fileInput.files[0].name}`;
-                display.style.color = "#28a745";
+                display.classList.add('selected');
             } else {
                 display.innerText = t('noFileSelected');
-                display.style.color = "#666";
+                display.classList.remove('selected');
             }
         });
     }
+});
+document.querySelectorAll('a[href="#"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+    });
 });

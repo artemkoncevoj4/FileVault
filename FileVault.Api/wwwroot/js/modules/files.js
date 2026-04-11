@@ -1,10 +1,9 @@
 import { apiRequest } from '../core/api.js';
-import { showToast } from '../core/ui.js';
 import { t } from '../core/i18n.js';
+import { showToast, showConfirm } from '../core/ui.js';
 
 let currentFileToRename = { id: null, name: "" };
 
-// --- Загрузка списка файлов ---
 export async function loadFiles() {
     const tbody = document.getElementById('filesTable');
     if (!tbody) return;
@@ -17,7 +16,7 @@ export async function loadFiles() {
         const userLvl = userData.accessLevel;
         
         if (files.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">${t('noFilesFound')}</td></tr>`;
+            tbody.innerHTML = `<tr class="empty-row"><td colspan="5">${t('noFilesFound')}</td></tr>`;
             return;
         }
 
@@ -27,27 +26,30 @@ export async function loadFiles() {
             const canEdit = (isOwner && userLvl >= 3) || userLvl >= 5;
             const canLock = userLvl >= 4;
 
+            let buttons = '';
+            if (canDownload) {
+                buttons += `<button class="btn-sm btn-primary" data-action="download" data-id="${f.id}">📥</button>`;
+            }
+            if (canEdit) {
+                buttons += `<button class="btn-sm btn-secondary" data-action="rename" data-id="${f.id}" data-name="${escapeHtml(f.virtualName)}">✏️</button>`;
+                buttons += `<button class="btn-sm btn-danger" data-action="delete" data-id="${f.id}">🗑️</button>`;
+            }
+            if (canLock) {
+                const lockAction = f.isLocked ? 'unlock' : 'lock';
+                const lockClass = f.isLocked ? 'btn-danger' : 'btn-success';   // locked -> красный, unlocked -> зелёный
+                const lockIcon = f.isLocked ? '🔒' : '🔓';
+                buttons += `<button class="btn-sm ${lockClass}" data-action="${lockAction}" data-id="${f.id}">${lockIcon}</button>`;
+            }
+
             return `
-                <tr>
-                    <td><b>${escapeHtml(f.virtualName)}</b></td>
-                    <td>${(f.size / 1024).toFixed(1)} KB</td>
-                    <td><span class="badge">${isOwner ? t('youLabel') : t('ownerLabel')}</span></td>
-                    <td>${f.isLocked ? '🔒' : '🔓'}</td>
-                    <td>
-                        <div class="btn-group" style="display:flex; gap:5px;">
-                            ${canDownload ? `<button class="btn-sm btn-primary" onclick="safeAction('download', ${f.id})">📥</button>` : ''}
-                            ${canEdit ? `
-                                <button class="btn-sm btn-secondary" onclick="safeAction('rename', ${f.id}, '${escapeHtml(f.virtualName)}')">✏️</button>
-                                <button class="btn-sm btn-danger" onclick="safeAction('delete', ${f.id})">🗑️</button>
-                            ` : ''}
-                            ${canLock ? `
-                                <button class="btn-sm ${f.isLocked ? 'btn-success' : 'btn-warning'}" onclick="safeAction('${f.isLocked ? 'unlock' : 'lock'}', ${f.id})">
-                                    ${f.isLocked ? '🔓' : '🔒'}
-                                </button>
-                            ` : ''}
-                        </div>
-                    </td>
-                </tr>`;
+                <tr data-file-id="${f.id}">
+                    <td data-label="${t('thFileName')}"><b>${escapeHtml(f.virtualName)}</b></td>
+                    <td data-label="${t('thSize')}">${(f.size / 1024).toFixed(1)} KB</td>
+                    <td data-label="${t('thUser')}"><span class="badge">${isOwner ? t('youLabel') : t('ownerLabel')}</span></td>
+                    <td data-label="${t('thAction')}">${f.isLocked ? '🔒' : '🔓'}</td>
+                    <td data-label="${t('thAction')}" class="actions-cell">${buttons}</td>
+                </tr>
+            `;
         }).join('');
     } catch (err) {
         showToast(t('toastLoadError') || 'Failed to load files', 'error');
@@ -66,21 +68,22 @@ export async function loadStorageStats() {
         if (infoPanel) infoPanel.classList.remove('hidden');
         if (bar) {
             bar.style.width = stats.percentUsed + '%';
-            bar.style.background = stats.percentUsed > 80 
-                ? "linear-gradient(90deg, #ff416c, #ff4b2b)" 
-                : "linear-gradient(90deg, #007bff, #3395ff)";
+            // Используем класс вместо прямого style.background
+            if (stats.percentUsed > 80) {
+                bar.classList.add('warning');
+            } else {
+                bar.classList.remove('warning');
+            }
         }
         if (text) {
             text.innerText = `${stats.used} GB / ${stats.total} GB (${stats.percentUsed}%)`;
         }
     } catch (err) {
-        // Не показываем тост, просто скрываем панель или оставляем как есть
         const infoPanel = document.getElementById('storage-info');
         if (infoPanel) infoPanel.classList.add('hidden');
     }
 }
 
-// --- Операции с файлами ---
 export async function uploadFile() {
     const userData = JSON.parse(localStorage.getItem('vault_user') || '{}');
     if (userData.accessLevel < 3) return showToast(t('toastAccessDenied_3'), "error");
@@ -117,7 +120,10 @@ export async function uploadFile() {
             showToast(t('toastFileUploaded') || "Success!");
             fileInput.value = '';
             const display = document.getElementById('fileNameDisplay');
-            if(display) display.innerText = t('noFileSelected');
+            if(display) {
+                display.innerText = t('noFileSelected');
+                display.classList.remove('selected');
+            }
             await loadFiles();
         } else {
             showToast(t('toastFileUploadedError'), "error");
@@ -134,10 +140,30 @@ export async function uploadFile() {
     xhr.send(formData);
 }
 
-export function downloadFile(fileId) {
+export async function downloadFile(fileId) {
     const userData = JSON.parse(localStorage.getItem('vault_user') || '{}');
     if (userData.accessLevel < 2) return showToast(t('toastAccessDenied_2'), "error");
-    window.location.href = `/api/files/download/${fileId}`;
+
+    try {
+        const response = await fetch(`/api/files/download/${fileId}`, {
+            credentials: 'same-origin'
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        showToast(err.message || t('toastDownloadFail'), 'error');
+    }
 }
 
 export async function lockFile(fileId) {
@@ -164,27 +190,35 @@ export async function deleteFileOnServer(fileId) {
     const userData = JSON.parse(localStorage.getItem('vault_user') || '{}');
     if (userData.accessLevel < 3) return showToast(t('toastAccessDenied'), "error");
     
-    if (!confirm(t('confirmDelete') || "Delete this file?")) return;
+    // Заменяем confirm на кастомное окно
+    const confirmed = await showConfirm(t('confirmDelete') || "Delete this file?");
+    if (!confirmed) return;
 
     try {
         await apiRequest(`/api/files/delete/${fileId}`, 'DELETE');
         showToast(t('toastFileDeleted'));
         loadFiles();
     } catch (err) {
-        showToast(t('toastFileDeleteError'), 'error');
+        showToast(err.message || t('toastFileDeleteError'), 'error');
     }
 }
 
-// --- Переименование ---
 export function renamePrompt(fileId, oldName) {
     currentFileToRename = { id: fileId, name: oldName };
-    document.getElementById('renameOldNameDisplay').innerText = oldName;
-    document.getElementById('renameInput').value = "";
-    document.getElementById('rename-modal').classList.remove('hidden');
+    const oldSpan = document.getElementById('renameOldNameDisplay');
+    if (oldSpan) oldSpan.innerText = oldName;
+    const input = document.getElementById('renameInput');
+    if (input) input.value = "";
+    const modal = document.getElementById('rename-modal');
+    if (modal) modal.classList.remove('hidden');
+    // Блокировка прокрутки фона
+    document.body.classList.add('modal-open');
 }
 
 export function closeRenameModal() {
-    document.getElementById('rename-modal').classList.add('hidden');
+    const modal = document.getElementById('rename-modal');
+    if (modal) modal.classList.add('hidden');
+    document.body.classList.remove('modal-open');
 }
 
 export async function confirmRename() {
@@ -205,7 +239,6 @@ export async function confirmRename() {
     }
 }
 
-// Вспомогательная функция для экранирования HTML (чтобы XSS не было)
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -213,16 +246,5 @@ function escapeHtml(str) {
         if (m === '<') return '&lt;';
         if (m === '>') return '&gt;';
         return m;
-    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-        return c;
     });
 }
-
-// Глобальная функция safeAction (используется в onclick)
-window.safeAction = function(action, id, name) {
-    if (action === 'download') downloadFile(id);
-    else if (action === 'rename') renamePrompt(id, name);
-    else if (action === 'delete') deleteFileOnServer(id);
-    else if (action === 'lock') lockFile(id);
-    else if (action === 'unlock') unlockFile(id);
-};

@@ -9,11 +9,11 @@
 <body>
 
    <header class="main-header">
-        <div class="header-content" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="header-content">
             <h1>☁️ FileVault Storage</h1>
             <div class="header-controls">
                 <span class="author-tag">by artemkoncevoj4</span>
-                <select id="lang-switch" onchange="changeLanguage(this.value)" style="margin-left: 15px; padding: 5px; border-radius: 5px;">
+                <select id="lang-switch" onchange="changeLanguage(this.value)">
                     <option value="en">ENG</option>
                     <option value="ru">РУС</option>
                 </select>
@@ -28,14 +28,14 @@
             <input type="text" id="loginInput" data-i18n-placeholder="loginPlaceholder" placeholder="Username">
             <input type="password" id="passwordInput" data-i18n-placeholder="passPlaceholder" placeholder="Password">
             <div class="auth-buttons">
-                <button onclick="login()" data-i18n="loginBtn">Login</button>
-                <button onclick="register()" class="btn-success" data-i18n="createAccBtn">Create Account</button>
+                <button data-action="login" data-i18n="loginBtn">Login</button>
+                <button data-action="register" class="btn-success" data-i18n="createAccBtn">Create Account</button>
             </div>
         </div>
 
         <div id="profile-panel" class="panel hidden">
             <div class="panel-header">
-                <h2 id="welcomeText"></h2> <button onclick="logout()" class="btn-danger" data-i18n="logoutBtn">Logout</button>
+                <h2 id="welcomeText"></h2> <button data-action="logout" class="btn-danger" data-i18n="logoutBtn">Logout</button>
             </div>
             <p><span data-i18n="accessLevelLabel">Access Level:</span> <b id="userLevel"></b></p>
         </div>
@@ -44,12 +44,12 @@
             <h2 data-i18n="filesTitle">📂 My Files</h2>
             
             <div id="storage-info" class="panel hidden">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="font-weight: bold; font-size: 14px;">💽 Linux Server Storage</span>
-                    <span id="storage-text" style="font-size: 13px; color: #555;">0 / 0 GB</span>
+                <div class="storage-header">
+                    <span class="storage-label">💽 Linux Server Storage</span>
+                    <span id="storage-text" class="storage-text"></span>
                 </div>
                 <div class="progress-container-static">
-                    <div id="storage-bar" class="progress-bar-fill blue" style="width: 0%"></div>
+                    <div id="storage-bar" class="progress-bar-fill storage-bar-fill" style="width: 0%"></div>
                 </div>
             </div>
 
@@ -58,20 +58,19 @@
                 <div class="upload-container">
                     <div class="drop-zone">
                         <input type="file" id="fileInput">
-                        <div class="file-label" id="fileNameDisplay" data-i18n="selectFilePrompt">Select file...</div>
+                        <div id="fileNameDisplay" class="file-name-display" data-i18n="selectFilePrompt">Select file...</div>
                     </div>
-                    <button class="btn-success" onclick="uploadFile()" data-i18n="uploadBtn">Upload</button>
+                    <button class="btn-success" data-action="upload" data-i18n="uploadBtn">Upload</button>
                 </div>
 
-                <div id="progress-container" class="hidden" style="margin-top: 15px;">
+                <div id="progress-container" class="hidden progress-wrapper">
                     <div class="progress-container-static">
-                        <div id="progress-bar" class="progress-bar-fill green" style="width: 0%"></div>
+                        <div id="progress-bar" class="progress-bar-fill" style="width: 0%"></div>
                     </div>
-                    <p id="progress-text" style="text-align: center; font-size: 12px; margin-top: 5px;"></p>
-                </div>
+                    <p id="progress-text" class="progress-text"></p>
             </div>
 
-            <div class="table-container">
+            <table class="files-table">
                 <table>
                     <thead>
                         <tr>
@@ -89,7 +88,7 @@
 
         <div id="admin-panel" class="panel admin-card hidden">
             <h2 data-i18n="adminTitle">👑 Admin Center</h2>
-            <div class="table-container">
+            <table class="files-table">
                 <table>
                     <thead>
                         <tr>
@@ -107,8 +106,8 @@
         <footer class="main-footer">
             <p>© 2026 Created by <b>artemkoncevoj4</b></p>
             <div class="footer-links">
-                <a href="#" onclick="showTerms()" data-i18n="tosLink">Terms of Service</a> | 
-                <a href="#" onclick="showPrivacy()" data-i18n="privacyLink">Privacy Policy</a>
+                <a href="#" data-action="show-terms" data-i18n="tosLink">Terms of Service</a> | 
+                <a href="#" data-action="show-privacy" data-i18n="privacyLink">Privacy Policy</a>
             </div>
         </footer>
     </main>
@@ -119,8 +118,19 @@
             <p class="modal-subtitle"><span data-i18n="renameOldName">Current name:</span> <b id="renameOldNameDisplay"></b></p>
             <input type="text" id="renameInput" data-i18n-placeholder="renameInputPlaceholder" placeholder="New name">
             <div class="modal-actions dual-buttons">
-                <button onclick="closeRenameModal()" class="btn-secondary" data-i18n="cancelBtn">Cancel</button>
-                <button onclick="confirmRename()" class="btn-success" data-i18n="saveBtn">Save Changes</button>
+                <button data-action="close-rename" class="btn-secondary" data-i18n="cancelBtn">Cancel</button>
+                <button data-action="confirm-rename" class="btn-success" data-i18n="saveBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 class="modal-title" data-i18n="confirmTitle">⚠️ Confirm Deletion</h3>
+            <p id="confirm-message" class="modal-text"></p>
+            <div class="modal-actions dual-buttons">
+                <button id="confirm-cancel" class="btn-secondary" data-i18n="cancelBtn">Cancel</button>
+                <button id="confirm-ok" class="btn-danger" data-i18n="confirmDeleteBtn">Delete</button>
             </div>
         </div>
     </div>
@@ -130,7 +140,7 @@
             <h2 id="legal-title" class="modal-title"></h2>
             <div id="legal-content" class="modal-text"></div>
             <div class="modal-actions">
-                <button onclick="document.getElementById('legal-modal').classList.add('hidden')" data-i18n="modalUnderstand">I Understand</button>
+                <button data-action="close-legal" data-i18n="modalUnderstand">I Understand</button>
             </div>
         </div>
     </div>

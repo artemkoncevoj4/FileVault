@@ -1,0 +1,92 @@
+/* Дополнительные классы для замены инлайн-стилей */
+.empty-row td {
+    text-align: center;
+    padding: 20px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.storage-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+    /* background задаётся динамически через JS, но можно оставить базовый цвет */
+    background: linear-gradient(90deg, #007bff, #3395ff);
+}
+
+.storage-bar-fill.warning {
+    background: linear-gradient(90deg, #ff416c, #ff4b2b);
+}
+
+.file-name-display {
+    color: #666;
+}
+.file-name-display.selected {
+    color: #28a745;
+    font-weight: 500;
+}
+.storage-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.storage-label {
+    font-weight: bold;
+    font-size: 14px;
+}
+.storage-text {
+    font-size: 13px;
+    color: #555;
+}
+.progress-wrapper {
+    margin-top: 15px;
+}
+.progress-text {
+    text-align: center;
+    font-size: 12px;
+    margin-top: 5px;
+}
+.dual-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+.level-input {
+    width: 70px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e0;
+    text-align: center;
+}

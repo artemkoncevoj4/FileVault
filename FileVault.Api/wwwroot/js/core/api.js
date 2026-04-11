@@ -1,5 +1,6 @@
-import {showToast} from './ui.js';
-import { t } from '../core/i18n.js'; // Используем только помощник t
+import { showToast } from './ui.js';
+import { t } from '../core/i18n.js';
+
 export async function apiRequest(url, method = 'GET', body = null) {
     const options = { 
         method, 
@@ -12,22 +13,25 @@ export async function apiRequest(url, method = 'GET', body = null) {
         const response = await fetch(url, options);
 
         if (response.status === 401) {
-            // Instead of direct logout, clear storage and reload
             localStorage.removeItem('vault_user');
             window.location.href = '/';
             throw new Error('Unauthorized');
         }
 
         if (!response.ok) {
-            const errorText = (await response.text()).catch(() => 'Request failed');
-            throw new Error(`${response.status}: ${errorText}`);
+            let errorText;
+            try {
+                errorText = await response.text();
+            } catch {
+                errorText = 'Request failed';
+            }
+            const error = new Error(errorText);
+            error.status = response.status;   // добавляем статус
+            throw error;
         }
 
         return response;
     } catch (e) {
-        if(e.message !== 'Unauthorized') {
-            showToast(t('toastNetError') || 'Networkerror', 'error');
-        }
         throw e;
     }
 }

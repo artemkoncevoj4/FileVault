@@ -34,9 +34,6 @@ button:hover {
     box-shadow: 0 8px 20px rgba(67, 97, 238, 0.25);
 }
 
-.btn-danger { background: var(--danger); }
-.btn-success { background: var(--success); }
-
 /*DROP ZONE*/
 
 .drop-zone {
@@ -65,10 +62,7 @@ button:hover {
     background: #f0f7ff;
     transform: scale(1.01);
 }
-#fileNameDisplay.selected {
-    color: var(--primary);
-    font-weight: 700;
-}
+
 /*PROGRESS BAR*/
 .progress-container-static {
     height: 8px;

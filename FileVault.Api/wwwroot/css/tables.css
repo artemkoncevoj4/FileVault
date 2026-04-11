@@ -54,3 +54,52 @@
     color: var(--primary);
     font-weight: 600;
 }
+/* Мобильная адаптация */
+@media (max-width: 768px) {
+    .files-table,
+    .files-table thead,
+    .files-table tbody,
+    .files-table tr,
+    .files-table th,
+    .files-table td {
+        display: block;
+    }
+
+    .files-table thead {
+        display: none; /* Скрываем заголовки, данные будут с лейблами */
+    }
+
+    .files-table tr {
+        margin-bottom: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        background: white;
+        padding: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .files-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        text-align: right;
+    }
+
+    .files-table td:last-child {
+        border-bottom: none;
+    }
+
+    .files-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        color: var(--primary);
+        text-align: left;
+        flex: 1;
+    }
+
+    .actions-cell {
+        justify-content: flex-end;
+    }
+}

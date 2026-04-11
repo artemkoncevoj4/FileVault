@@ -17,8 +17,8 @@ export const translations = {
         filesTitle: "📂 My Files",
         uploadAvailable: "✓ File upload available (Level 3+)",
         selectFilePrompt: "Click here to select files",
-        noFileSelected: "No file selected",
-        noFilesFound: "No files found",
+        noFileSelected: "No file selected!",
+        noFilesFound: "No files found!",
         uploadBtn: "Upload to Server",
         loadingFiles: "Loading file list...",
         uploading: "Uploading",
@@ -43,7 +43,7 @@ export const translations = {
         // --- Buttons & Common ---
         saveBtn: "Save Changes",
         cancelBtn: "Cancel",
-        confirmDelete: "Are you sure you want to delete this?",
+        confirmDeleteBtn: "Delete",
 
         // --- Admin Panel ---
         adminTitle: "👑 Admin Center",
@@ -60,9 +60,10 @@ export const translations = {
         renameTitle: "✏️ Rename",
         renameOldName: "Current name:",
         renameInputPlaceholder: "New name",
-        cancelBtn: "Cancel",
-        saveBtn: "Save Changes",
-        confirmDelete: "Permanently delete this file?",
+        confirmTitle: "⚠️ Confirm Deletion",
+        confirmDelete: "Are you sure you want to delete this?",
+
+
 
         // --- Toasts & Errors ---
         toastNetError: "Network error!",
@@ -87,6 +88,7 @@ export const translations = {
         toastAccessDenied: "Access Denied!",
         toastAccessDenied_2: "Access Denied (Level 2 required)!",
         toastAccessDenied_3: "Access Denied (Level 3 required)!",
+        toastSelfDelete: "You cannot delete your own account!",
 
         tosContent: `TERMS OF SERVICE (PRIVATE RESEARCH PROJECT)\n\n1. STATUS: This resource is a private, non-commercial research project. It is not a public service provider or a registered data operator.\n2. LIABILITY: The service is provided "AS IS". The owner (artemkoncevoj4) bears NO RESPONSIBILITY for data loss, service interruptions, or the nature of user-uploaded content.\n3. USER RESPONSIBILITY: Users are solely responsible for the legality of their files. Uploading illegal content or malware is strictly prohibited.\n4. NO GUARANTEES: Storage is not permanent. The administrator reserves the right to delete any data or terminate the service at any time without notice.\n5. JURISDICTION: By using this private sandbox, you agree that you do so at your own risk and waive any legal claims against the owner.`,
         privacyContent: `PRIVACY & DATA POLICY\n\n1. ANONYMITY: We do not collect or process personal identifiable information (PII) such as real names, IDs, or phone numbers.\n2. TECHNICAL DATA: We only store a "Username" (alias) and "Password Hash" for authentication purposes.\n3. PROHIBITED DATA: Users are strictly forbidden from uploading files containing personal data of third parties. Responsibility for such actions lies entirely with the user.\n4. DELETION: You can stop using the service at any time. The owner may perform server cleanups, resulting in the deletion of all stored data.`,
@@ -110,8 +112,8 @@ export const translations = {
         filesTitle: "📂 Мои файлы",
         uploadAvailable: "✓ Вам доступна загрузка (уровень 3+)",
         selectFilePrompt: "Нажмите здесь, чтобы выбрать файл",
-        noFileSelected: "Файл не выбран",
-        noFilesFound: "Файлы не найдены",
+        noFileSelected: "Файл не выбран!",
+        noFilesFound: "Файлы не найдены!",
         uploadBtn: "Загрузить на сервер",
         loadingFiles: "Загрузка списка файлов...",
         uploading: "Загрузка",
@@ -136,8 +138,7 @@ export const translations = {
         // --- Buttons & Common ---
         saveBtn: "Сохранить",
         cancelBtn: "Отмена",
-        confirmDelete: "Вы уверены, что хотите это удалить?",
-
+        confirmDeleteBtn: "Удалить",
         // --- Admin Panel ---
         adminTitle: "👑 Админ-центр",
         thId: "ID",
@@ -153,9 +154,9 @@ export const translations = {
         renameTitle: "✏️ Переименовать",
         renameOldName: "Старое имя:",
         renameInputPlaceholder: "Новое имя",
-        cancelBtn: "Отмена",
-        saveBtn: "Сохранить",
-        confirmDelete: "Удалить файл навсегда?",
+        confirmTitle: "⚠️ Подтверждение удаления",
+        confirmDelete: "Вы уверены, что хотите это удалить?",
+
 
         // --- Toasts & Errors ---
         toastNetError: "Ошибка сети!",
@@ -180,6 +181,7 @@ export const translations = {
         toastAccessDenied: "Доступ/действие запрещено!",
         toastAccessDenied_2: "Действия запрещено (необходим уровень 2)!",
         toastAccessDenied_3: "Действия запрещено (необходим уровень 3)!",
+        toastSelfDelete: "Вы не можете удалить свою учётную запись!",
 
         tosContent: `УСЛОВИЯ ИСПОЛЬЗОВАНИЯ (ЧАСТНЫЙ ИССЛЕДОВАТЕЛЬСКИЙ ПРОЕКТ)\n\n1. СТАТУС: Данный ресурс является частным некоммерческим исследовательским проектом. Он не является публичным сервисом или оператором персональных данных.\n2. ОТВЕТСТВЕННОСТЬ: Сервис предоставляется по принципу «КАК ЕСТЬ». Владелец (artemkoncevoj4) НЕ НЕСЕТ ОТВЕТСТВЕННОСТИ за потерю данных или характер контента, загружаемого пользователями.\n3. ОТВЕТСТВЕННОСТЬ ПОЛЬЗОВАТЕЛЯ: Пользователь единолично отвечает за законность своих файлов. Загрузка запрещенного контента или вредоносного ПО строго запрещена.\n4. ОТСУТСТВИЕ ГАРАНТИЙ: Хранение не является постоянным. Администратор вправе удалить любые данные или прекратить работу сервиса в любое время без уведомления.\n5. СОГЛАСИЕ: Используя эту площадку, вы подтверждаете, что действуете на свой страх и риск и отказываетесь от любых юридических претензий к владельцу.`,
         privacyContent: `ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ\n\n1. АНОНИМНОСТЬ: Мы не собираем и не обрабатываем персональные данные (ФИО, паспорта, телефоны).\n2. ТЕХНИЧЕСКИЕ ДАННЫЕ: Хранится только «Логин» (псевдоним) и «Хэш пароля» для обеспечения доступа.\n3. ЗАПРЕЩЕННЫЕ ДАННЫЕ: Пользователям категорически запрещено загружать файлы, содержащие персональные данные третьих лиц. Ответственность за это лежит на пользователе.\n4. УДАЛЕНИЕ: Вы можете прекратить использование сервиса в любой момент. Владелец может проводить очистку сервера, что приведет к удалению всех данных.`,
@@ -218,6 +220,5 @@ export function t(key) {
 export function changeLanguage(lang) {
     localStorage.setItem('vault_lang', lang);
     applyTranslations();
-    if (window.updateFileStatus) window.updateFileStatus(); // Обновляем текст файла
     if (window.checkAuth) window.checkAuth(); 
 }

@@ -17,13 +17,10 @@ export async function login() {
         const data = await res.json();
         localStorage.setItem('vault_user', JSON.stringify(data.user));
         
-        showToast(t('toastLoginSuccess')); // Используем t()
+        showToast(t('toastLoginSuccess'));
         
-        // Call global checkAuth function defined in main.js
+
         if (window.checkAuth) window.checkAuth();
-        
-        // Load files
-        await loadFiles();
         
         // If admin, load user list
         if (data.user.accessLevel >= 5) {

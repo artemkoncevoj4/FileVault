@@ -2,8 +2,8 @@
 :root {
     --primary: #4361ee;
     --primary-light: #4895ef;
-    --success: #4cc9f0;
-    --danger: #f72585;
+    --success: #10b981;
+    --danger: #ef4444;
     --bg-main: #f8f9fd;
     --card-bg: #ffffff;
     --text-dark: #2b2d42;
@@ -25,6 +25,10 @@ body {
     color: var(--text-dark);
     line-height: 1.6;
     padding-top: 90px;
+}
+
+body.modal-open {
+    overflow: hidden;
 }
 
 .hidden {
