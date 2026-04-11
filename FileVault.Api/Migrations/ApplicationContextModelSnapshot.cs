@@ -72,12 +72,17 @@ namespace FileVault.Api.Migrations
             modelBuilder.Entity("FileVault.Api.Database.Files", b =>
                 {
                     b.HasOne("FileVault.Api.Database.User", "User")
-                        .WithMany()
+                        .WithMany("Files")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FileVault.Api.Database.User", b =>
+                {
+                    b.Navigation("Files");
                 });
 #pragma warning restore 612, 618
         }

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FileVault.Api.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20260321202547_Initial")]
-    partial class Initial
+    [Migration("20260411221003_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -75,12 +75,17 @@ namespace FileVault.Api.Migrations
             modelBuilder.Entity("FileVault.Api.Database.Files", b =>
                 {
                     b.HasOne("FileVault.Api.Database.User", "User")
-                        .WithMany()
+                        .WithMany("Files")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("FileVault.Api.Database.User", b =>
+                {
+                    b.Navigation("Files");
                 });
 #pragma warning restore 612, 618
         }

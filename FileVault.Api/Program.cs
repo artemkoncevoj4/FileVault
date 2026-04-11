@@ -82,7 +82,7 @@ using (var scope = app.Services.CreateScope())
     var db = services.GetRequiredService<ApplicationContext>();
     var hasher = services.GetRequiredService<IPasswordHasher>();
 
-    db.Database.EnsureCreated(); 
+    db.Database.Migrate();
 
     if (!db.Users.Any(u => u.Login == adminLogin))
     {
