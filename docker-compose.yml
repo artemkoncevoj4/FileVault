@@ -12,7 +12,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production17
     volumes:
       - ./Storage:/app/Storage
-      - ./database.db:/app/database.db
+      - ./dbdata:/app/dbdata
     restart: always
 
   caddy:
