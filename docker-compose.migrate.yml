@@ -1,0 +1,21 @@
+services:
+  migrate:
+    image: mcr.microsoft.com/dotnet/sdk:9.0
+    container_name: filevault_migrate
+    environment:
+      - ConnectionStrings__DefaultConnection=Data Source=/app/database.db
+      - JWT_KEY=
+      - ADMIN_USERNAME=
+      - ADMIN_PASSWORD=
+      - ASPNETCORE_ENVIRONMENT=
+    volumes:
+      - ./Storage:/app/Storage
+      - ./database.db:/app/database.db
+      - .:/src
+    working_dir: /src/FileVault.Api
+    command: >
+      sh -c "dotnet restore &&
+             dotnet tool install --global dotnet-ef &&
+             export PATH=\"\$PATH:/root/.dotnet/tools\" &&
+             dotnet ef database update"
+    restart: "no"

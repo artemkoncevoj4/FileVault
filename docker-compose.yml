@@ -5,10 +5,11 @@ services:
     expose:
       - "8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - JWT_KEY=VashSuperSekretniyKlyuchDlyaJWT1234567890
+      - ConnectionStrings__DefaultConnection=Data Source=/app/database.db
+      - JWT_KEY=
       - ADMIN_USERNAME=
       - ADMIN_PASSWORD=
+      - ASPNETCORE_ENVIRONMENT=Production17
     volumes:
       - ./Storage:/app/Storage
       - ./database.db:/app/database.db
