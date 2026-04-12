@@ -140,30 +140,10 @@ export async function uploadFile() {
     xhr.send(formData);
 }
 
-export async function downloadFile(fileId) {
+export function downloadFile(fileId) {
     const userData = JSON.parse(localStorage.getItem('vault_user') || '{}');
     if (userData.accessLevel < 2) return showToast(t('toastAccessDenied_2'), "error");
-
-    try {
-        const response = await fetch(`/api/files/download/${fileId}`, {
-            credentials: 'same-origin'
-        });
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText);
-        }
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = '';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    } catch (err) {
-        showToast(err.message || t('toastDownloadFail'), 'error');
-    }
+    window.location.href = `/api/files/download/${fileId}`;
 }
 
 export async function lockFile(fileId) {
