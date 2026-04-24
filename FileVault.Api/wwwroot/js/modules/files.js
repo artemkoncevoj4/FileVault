@@ -141,8 +141,7 @@ export function uploadFile() {
         if (pgContainer) pgContainer.classList.add('hidden');
         
         if (xhr.status === 200 || xhr.status === 201) {
-            showToast(t('toastUploadSuccess'), 'success');
-            // Reset file input
+            showToast(t('toastFileUploaded'), 'success');
             fileInput.value = '';
             const fileNameDisplay = document.getElementById('fileNameDisplay');
             if (fileNameDisplay) {
@@ -152,7 +151,7 @@ export function uploadFile() {
             loadFiles();
             loadStorageStats();
         } else {
-            let errorMsg = t('toastUploadError');
+            let errorMsg = t('toastFileUploadedError');
             try {
                 const response = JSON.parse(xhr.responseText);
                 errorMsg = response.message || errorMsg;
