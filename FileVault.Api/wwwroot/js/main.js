@@ -94,10 +94,6 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Блокировка прокрутки фона (CSS класс)
-// Добавим в base.css:
-// body.modal-open { overflow: hidden; }
-
 window.checkAuth = function() {
     const userDataRaw = localStorage.getItem('vault_user');
     let user = null;

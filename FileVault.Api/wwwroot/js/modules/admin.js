@@ -55,7 +55,7 @@ export async function loadAdminData() {
     `).join('');
 }
 
-// Вспомогательная функция (можно вынести в utils)
+// Вспомогательная функция
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {

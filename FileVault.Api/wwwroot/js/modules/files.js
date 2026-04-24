@@ -19,10 +19,13 @@ export async function loadFiles() {
             tbody.innerHTML = `<tr class="empty-row"><td colspan="5">${t('noFilesFound')}</td></tr>`;
             return;
         }
-
+        if (canUpload) {
+            loadStorageStats();
+        }
         tbody.innerHTML = files.map(f => {
             const isOwner = f.ownerId === currentUserId;
             const canDownload = userLvl >= 2;
+            const canUpload = userLvl >= 3;
             const canEdit = (isOwner && userLvl >= 3) || userLvl >= 5;
             const canLock = userLvl >= 4;
 
@@ -36,7 +39,7 @@ export async function loadFiles() {
             }
             if (canLock) {
                 const lockAction = f.isLocked ? 'unlock' : 'lock';
-                const lockClass = f.isLocked ? 'btn-danger' : 'btn-success';   // locked -> красный, unlocked -> зелёный
+                const lockClass = f.isLocked ? 'btn-danger' : 'btn-success';
                 const lockIcon = f.isLocked ? '🔒' : '🔓';
                 buttons += `<button class="btn-sm ${lockClass}" data-action="${lockAction}" data-id="${f.id}">${lockIcon}</button>`;
             }
@@ -54,7 +57,6 @@ export async function loadFiles() {
     } catch (err) {
         showToast(t('toastLoadError') || 'Failed to load files', 'error');
     }
-    loadStorageStats();
 }
 
 export async function loadStorageStats() {
@@ -68,7 +70,6 @@ export async function loadStorageStats() {
         if (infoPanel) infoPanel.classList.remove('hidden');
         if (bar) {
             bar.style.width = stats.percentUsed + '%';
-            // Используем класс вместо прямого style.background
             if (stats.percentUsed > 80) {
                 bar.classList.add('warning');
             } else {
@@ -169,8 +170,7 @@ export async function unlockFile(fileId) {
 export async function deleteFileOnServer(fileId) {
     const userData = JSON.parse(localStorage.getItem('vault_user') || '{}');
     if (userData.accessLevel < 3) return showToast(t('toastAccessDenied'), "error");
-    
-    // Заменяем confirm на кастомное окно
+
     const confirmed = await showConfirm(t('confirmDelete') || "Delete this file?");
     if (!confirmed) return;
 

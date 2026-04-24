@@ -33,10 +33,10 @@ builder.Services.Configure<FormOptions>(options =>
     options.MemoryBufferThreshold = int.MaxValue;
 });
 
-// 2. Снимаем лимит самого сервера Kestrel
+
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = null; // null = безлимитно
+    options.Limits.MaxRequestBodySize = null;
 });
 
 builder.Services.AddEndpointsApiExplorer();

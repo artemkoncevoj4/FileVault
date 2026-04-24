@@ -22,7 +22,6 @@ export async function login() {
 
         if (window.checkAuth) window.checkAuth();
         
-        // If admin, load user list
         if (data.user.accessLevel >= 5) {
             setTimeout(() => loadAdminData(), 100);
         }

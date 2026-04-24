@@ -17,5 +17,4 @@ public class User
 
 }
 
-// Добавляем DTO, чтобы безопасно возвращать данные
 public record UserDto(int Id, string Login, int AccessLevel);

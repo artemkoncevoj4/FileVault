@@ -46,7 +46,6 @@ public class AuthController : ControllerBase
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Login == req.Login);
         if (user == null || !_hasher.Verify(req.Password, user.PasswordHash)) return Unauthorized("Invalid login or password");
 
-        // Создаем токен
         var token = GenerateJwtToken(user);
         
         var cookieOptions = new CookieOptions

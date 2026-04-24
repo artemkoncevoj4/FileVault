@@ -30,13 +30,10 @@ public class FilesController : ControllerBase
         var userLevel = GetUserLevel();
         if (userLevel < UserLevels.Moderator) return Forbid("Insufficient access level");
 
-        //Ищем файл в базе по уникальному ID
         var fileRecord = await _db.Files.FindAsync(id);
 
-        //Если нет
         if(fileRecord == null) return NotFound("File not found");
 
-        //Проверка прав
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
             return Unauthorized(new { error = "Invalid user identifier" });
@@ -59,13 +56,10 @@ public class FilesController : ControllerBase
         var userLevel = GetUserLevel();
         if (userLevel < UserLevels.Moderator) return Forbid("Insufficient access level");
 
-        //Ищем файл в базе по уникальному ID
         var fileRecord = await _db.Files.FindAsync(id);
 
-        //Если нет
         if(fileRecord == null) return NotFound("File not found");
 
-        //Проверка прав
         var currentUserId = GetCurrentUserId();
         if (currentUserId == null)
             return Unauthorized(new { error = "Invalid user identifier" });
@@ -163,7 +157,6 @@ public class FilesController : ControllerBase
         var physicalPath = Path.Combine(_storagePath, fileRecord.Hash);
         if (!System.IO.File.Exists(physicalPath)) return NotFound("Physical file is missing");
 
-        // Отдаем файл с его "Виртуальным" именем
         return PhysicalFile(physicalPath, "application/octet-stream", fileRecord.VirtualName);
     }
 
@@ -257,7 +250,6 @@ public class FilesController : ControllerBase
             double freeBytes = drive.AvailableFreeSpace;
             double usedBytes = totalBytes - freeBytes;
 
-            // Переводим в ГБ
             double totalGb = totalBytes / 1073741824.0;
             double usedGb = usedBytes / 1073741824.0;
 
