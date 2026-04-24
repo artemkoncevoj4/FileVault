@@ -41,43 +41,45 @@
         </div>
 
         <div id="files-panel" class="panel hidden">
-            <h2 data-i18n="filesTitle">📂 My Files</h2>
+            <div class="panel-header">
+                <h2 data-i18n="filesTitle">Your Files</h2>
+            </div>
             
-            <div id="storage-info" class="panel hidden">
-                <div class="storage-header">
-                    <span class="storage-label">💽 Linux Server Storage</span>
-                    <span id="storage-text" class="storage-text"></span>
+            <div id="upload-section" class="upload-zone hidden">
+                <div class="storage-info">
+                    <div class="progress-container">
+                        <div id="storageBar" class="progress-bar"></div>
+                    </div>
+                    <small id="storageText">Loading storage stats...</small>
                 </div>
-                <div class="progress-container-static">
-                    <div id="storage-bar" class="progress-bar-fill storage-bar-fill" style="width: 0%"></div>
+                
+                <!-- DROP ZONE AREA -->
+                <div id="dropzoneArea" class="dropzone-area">
+                    <div class="dropzone-content">
+                        <span class="dropzone-icon">📁</span>
+                        <p class="dropzone-text" data-i18n="dropzoneText">Drag & drop file here or click to select</p>
+                        <span id="fileNameDisplay" class="dropzone-filename" data-i18n="noFileSelected">No file selected</span>
+                    </div>
+                    <input type="file" id="fileInput" hidden>
+                </div>
+                
+                <div class="upload-actions">
+                    <button data-action="upload" class="btn-success upload-btn" data-i18n="uploadBtn">Upload</button>
+                </div>
+                
+                <div id="uploadProgressContainer" class="progress-container hidden">
+                    <div id="uploadProgressBar" class="progress-bar"></div>
                 </div>
             </div>
 
-            <div id="upload-section" class="panel hidden">
-                <h3 data-i18n="uploadTitle">📤 Upload File</h3>
-                <div class="upload-container">
-                    <div class="drop-zone">
-                        <input type="file" id="fileInput">
-                        <div id="fileNameDisplay" class="file-name-display" data-i18n="selectFilePrompt">Select file...</div>
-                    </div>
-                    <button class="btn-success" data-action="upload" data-i18n="uploadBtn">Upload</button>
-                </div>
-
-                <div id="progress-container" class="hidden progress-wrapper">
-                    <div class="progress-container-static">
-                        <div id="progress-bar" class="progress-bar-fill" style="width: 0%"></div>
-                    </div>
-                    <p id="progress-text" class="progress-text"></p>
-            </div>
-
-            <table class="files-table">
-                <table>
+            <div class="table-container">
+                <table class="files-table">
                     <thead>
                         <tr>
-                            <th data-i18n="thFileName">Name</th>
+                            <th style="width: 40px;"></th> <th data-i18n="thFileName">Name</th>
                             <th data-i18n="thSize">Size</th>
-                            <th data-i18n="thUser">Owner</th>
-                            <th data-i18n="thAction">Action</th>
+                            <th data-i18n="th1User">Owner</th>
+                            <th data-i18n="thAction" style="text-align: right;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="filesTable">
@@ -89,7 +91,6 @@
         <div id="admin-panel" class="panel admin-card hidden">
             <h2 data-i18n="adminTitle">👑 Admin Center</h2>
             <table class="files-table">
-                <table>
                     <thead>
                         <tr>
                             <th data-i18n="thId">ID</th>
