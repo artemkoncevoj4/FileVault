@@ -221,7 +221,7 @@ public class FilesController : ControllerBase
 
         if (userLevel < UserLevels.Moderator)
         {
-            query = query.Where(f => !f.IsLocked || f.UserId == currentUserId.Value);
+            query = query.Where(f => !f.IsLocked);
         }
 
         var files = await query.Select(f => new

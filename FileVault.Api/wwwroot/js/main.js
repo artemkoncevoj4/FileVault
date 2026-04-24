@@ -1,16 +1,5 @@
 import { login, logout, register } from './modules/user.js';
-import { 
-    loadFiles, 
-    loadStorageStats,
-    uploadFile, 
-    downloadFile,
-    lockFile, 
-    unlockFile, 
-    deleteFileOnServer, 
-    renamePrompt, 
-    closeRenameModal, 
-    confirmRename 
-} from './modules/files.js';
+import { loadFiles, loadStorageStats, uploadFile, downloadFile, lockFile, unlockFile, deleteFileOnServer, renamePrompt, closeRenameModal, confirmRename, initDropZone } from './modules/files.js';
 import { loadAdminData, changeLevel, deleteUser } from './modules/admin.js';
 import { showTerms, showPrivacy } from './core/special_ui.js';
 import { t, applyTranslations, changeLanguage } from './core/i18n.js';
@@ -136,6 +125,7 @@ window.checkAuth = function() {
 
 document.addEventListener('DOMContentLoaded', () => {
     applyTranslations();
+    initDropZone();
     window.checkAuth();
     
     const fileInput = document.getElementById('fileInput');
